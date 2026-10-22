@@ -149,9 +149,10 @@ export async function listPosts(options: { scope?: "published" | "all"; kind?: P
   return (await queryPosts({ scope: options.scope, kind: options.kind, pageSize: options.limit ?? 10 })).posts;
 }
 
-export async function getPostBySlug(slug: string): Promise<Post | null> {
+/** Public detail URLs resolve exclusively through the persisted SQL primary key. */
+export async function getPublishedPost(id: string): Promise<Post | null> {
   const [post] = await getDb().select().from(posts)
-    .where(and(eq(posts.slug, slug), eq(posts.status, "published"))).limit(1);
+    .where(and(eq(posts.id, id), eq(posts.status, "published"))).limit(1);
   return post ?? null;
 }
 
@@ -177,8 +178,6 @@ function safeImageUrl(value: string): boolean {
 const imageUrlSchema = z.string().trim().max(2048).refine(safeImageUrl, "图片地址必须是本站路径或 HTTPS 链接。");
 const postSchema = z.object({
   title: z.string().trim().min(1, "请输入标题。").max(180, "标题最多 180 字。"),
-  slug: z.string().trim().min(1, "请输入文章地址。").max(160)
-    .regex(/^[\p{L}\p{N}]+(?:[-_][\p{L}\p{N}]+)*$/u, "文章地址只允许文字、数字、短横线和下划线。"),
   excerpt: z.string().trim().max(1000).default(""),
   content: z.string().max(500_000, "正文过长，请缩短至 50 万字以内。").default(""),
   category: z.string().trim().min(1).max(60).default("随笔"),
@@ -223,8 +222,12 @@ export function validateSettings(input: unknown): SiteSettings {
 
 export async function createPost(input: PostInput): Promise<Post> {
   const now = new Date().toISOString();
+  const id = crypto.randomUUID();
   const [post] = await getDb().insert(posts).values({
-    ...input, id: crypto.randomUUID(), createdAt: now, updatedAt: now,
+    ...input, id,
+    // Keep the legacy NOT NULL column populated without deriving a route from
+    // the title. Existing databases need no migration or rewritten records.
+    slug: id, createdAt: now, updatedAt: now,
     publishedAt: input.status === "published" ? now : "",
   }).returning();
   return post;
@@ -294,7 +297,6 @@ export async function apiRoute(action: () => Promise<Response>): Promise<Respons
   catch (error) {
     if (error instanceof ApiError) return json({ error: error.message }, error.status);
     const message = error instanceof Error ? `${error.message} ${error.cause instanceof Error ? error.cause.message : ""}` : "";
-    if (/UNIQUE constraint failed: posts\.slug/i.test(message)) return json({ error: "该文章地址已被使用，请换一个。" }, 409);
     console.error("Journal API failed", error);
     if (/no such table|binding.*unavailable/i.test(message)) return json({ error: "站点数据库尚未就绪，请检查数据目录与迁移。" }, 503);
     return json({ error: "操作暂时无法完成，请稍后重试。" }, 500);

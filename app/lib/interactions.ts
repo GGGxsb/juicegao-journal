@@ -23,7 +23,7 @@ const moderationInput = z.object({ status: z.enum(["approved", "rejected"]) }).s
 const replyInput = z.object({ content: plainText(3000) }).strict();
 
 type CommentRow = Omit<PublicComment, "isAdmin"> & { isAdmin: number };
-type AdminCommentRow = CommentRow & { status: CommentStatus; postTitle: string; postSlug: string };
+type AdminCommentRow = CommentRow & { status: CommentStatus; postTitle: string };
 type LikeRow = { count: number; liked: number };
 
 // Only an approved parent's name/id is included, even after it is later rejected.
@@ -33,7 +33,7 @@ const publicColumns = `c.id, c.post_id AS postId, c.nickname, c.content,
 const commentJoins = `FROM comments c JOIN posts p ON p.id = c.post_id
   LEFT JOIN comments parent ON parent.id = c.parent_id
     AND parent.post_id = c.post_id AND parent.status = 'approved'`;
-const adminColumns = `${publicColumns}, c.status, p.title AS postTitle, p.slug AS postSlug`;
+const adminColumns = `${publicColumns}, c.status, p.title AS postTitle`;
 const likeQuery = `SELECT
   (SELECT COUNT(*) FROM post_likes l WHERE l.post_id = p.id) AS count,
   EXISTS(SELECT 1 FROM post_likes l WHERE l.post_id = p.id AND l.visitor_hash = ?) AS liked
@@ -69,7 +69,7 @@ function publicComment(row: CommentRow): PublicComment {
 }
 
 function adminComment(row: AdminCommentRow): AdminComment {
-  return { ...publicComment(row), status: row.status, postTitle: row.postTitle, postSlug: row.postSlug };
+  return { ...publicComment(row), status: row.status, postTitle: row.postTitle };
 }
 
 // HMAC prevents dictionary recovery of IP addresses from a database copy. Raw

@@ -14,7 +14,6 @@ export interface PublicComment {
 export interface AdminComment extends PublicComment {
   status: CommentStatus;
   postTitle: string;
-  postSlug: string;
 }
 
 export interface InteractionPagination {

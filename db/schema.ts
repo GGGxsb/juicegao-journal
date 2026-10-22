@@ -3,6 +3,7 @@ import { index, integer, primaryKey, sqliteTable, text, uniqueIndex, type AnySQL
 export const posts = sqliteTable("posts", {
   id: text("id").primaryKey(),
   title: text("title").notNull(),
+  // Retained for existing databases; new records mirror id and routes use id only.
   slug: text("slug").notNull(),
   excerpt: text("excerpt").notNull().default(""),
   content: text("content").notNull().default(""),

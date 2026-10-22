@@ -12,7 +12,7 @@
  * cannot detect SSH tunnels forwarding to a production server.
  */
 import assert from "node:assert/strict";
-import { randomBytes } from "node:crypto";
+import { randomBytes, randomUUID } from "node:crypto";
 
 const base = new URL(process.argv[2] || "http://127.0.0.1:3000");
 assert.equal(base.protocol, "http:", "Verification is restricted to local HTTP previews.");
@@ -94,7 +94,7 @@ async function assertAnonymousCookie(value, label) {
 }
 
 const draftPayload = {
-  title: `${runId} disposable draft`, slug: runId,
+  title: `中文草稿-${runId}`,
   excerpt: "Disposable local integration verification content.",
   content: `## Verification\n\n${runId} body marker.\n\n**Markdown** remains readable.`,
   category: "测试", tags: ["local-qa"], kind: "article", status: "draft", coverImage: "",
@@ -104,6 +104,12 @@ try {
   const publicPosts = await readJson(await request("/api/posts"), 200, "anonymous published list");
   assert.ok(Array.isArray(publicPosts.posts));
   assert.ok(publicPosts.posts.every((post) => post.status === "published"));
+  for (const post of publicPosts.posts) {
+    if (typeof post.slug === "string" && post.slug && post.slug !== post.id) {
+      assert.equal((await request(`/posts/${encodeURIComponent(post.slug)}`)).status, 404, "Stored legacy aliases must not be public article routes.");
+      assert.equal((await request(`/posts/${encodeURIComponent(post.id)}`)).status, 200, "Existing SQL posts must remain readable by ID.");
+    }
+  }
   const publicSettings = await readJson(await request("/api/settings"), 200, "anonymous settings");
   assert.ok(publicSettings.settings?.name);
   passed("anonymous visitors can read published posts and public settings");
@@ -158,8 +164,9 @@ try {
 
   const created = await readJson(await request("/api/posts", { authenticated: true, method: "POST", json: draftPayload }), 201, "create draft");
   const draft = created.post;
-  assert.ok(draft.id);
   disposableIds.add(draft.id);
+  assert.match(draft.id, /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i, "SQL records must receive a server-generated UUID.");
+  assert.equal(draft.title, draftPayload.title, "Chinese titles must be accepted without an alias field.");
   assert.equal(draft.status, "draft");
   assert.equal(draft.publishedAt, "");
   assert.ok(draft.createdAt && draft.updatedAt);
@@ -167,26 +174,67 @@ try {
   assert.ok(adminPosts.posts.some((post) => post.id === draft.id && post.status === "draft"));
   const afterDraft = await readJson(await request("/api/posts"), 200, "public after draft");
   assert.ok(!afterDraft.posts.some((post) => post.id === draft.id));
-  const privateDraft = await request(`/posts/${draft.slug}`);
+  const storedDraft = await readJson(await request(`/api/posts/${draft.id}`, { authenticated: true }), 200, "read persisted draft by ID");
+  assert.equal(storedDraft.post.id, draft.id);
+  assert.equal(storedDraft.post.title, draftPayload.title);
+  const privateDraft = await request(`/posts/${draft.id}`);
   assert.equal(privateDraft.status, 404, "Public article URLs must hide drafts.");
   passed("drafts persist for the administrator and stay hidden from public lists and URLs");
 
-  const publishedPayload = { ...draftPayload, title: `${runId} published title`, status: "published" };
+  const publishedPayload = { ...draftPayload, title: `中文博客标题-${runId}`, status: "published" };
   const updated = await readJson(await request(`/api/posts/${draft.id}`, { authenticated: true, method: "PUT", json: publishedPayload }), 200, "publish draft");
   assert.equal(updated.post.status, "published");
   assert.ok(updated.post.publishedAt);
   assert.equal(updated.post.id, draft.id);
   const afterPublish = await readJson(await request("/api/posts"), 200, "public after publish");
   assert.ok(afterPublish.posts.some((post) => post.id === draft.id && post.title === publishedPayload.title));
-  const article = await request(`/posts/${draft.slug}`);
+  const article = await request(`/posts/${draft.id}`);
   assert.equal(article.status, 200, "Published article page should load.");
   assert.ok((await article.text()).includes(`${runId} body marker`), "Published article page should contain the stored body.");
+  assert.equal((await request(`/posts/${encodeURIComponent(publishedPayload.title)}`)).status, 404, "The Chinese title must not become an article route.");
   passed("publishing updates the public API and rendered article page");
 
-  await readJson(await request("/api/posts", { authenticated: true, method: "POST", json: publishedPayload }), 409, "duplicate slug");
-  await readJson(await request("/api/posts", { authenticated: true, method: "POST", json: { ...draftPayload, slug: `${runId}-invalid`, title: "" } }), 400, "invalid title");
-  await readJson(await request("/api/posts", { authenticated: true, method: "POST", json: { ...draftPayload, slug: "../invalid" } }), 400, "invalid slug");
-  passed("duplicate URLs and invalid content are rejected with clear validation responses");
+  const duplicate = await readJson(await request("/api/posts", { authenticated: true, method: "POST", json: publishedPayload }), 201, "publish duplicate Chinese title");
+  disposableIds.add(duplicate.post.id);
+  assert.notEqual(duplicate.post.id, draft.id, "Repeated titles must create distinct SQL records.");
+  assert.equal(duplicate.post.title, publishedPayload.title);
+  assert.equal((await request(`/posts/${duplicate.post.id}`)).status, 200, "Repeated titles must have independently readable ID routes.");
+  await readJson(await request("/api/posts", { authenticated: true, method: "POST", json: { ...draftPayload, title: "" } }), 400, "invalid title");
+  passed("Chinese titles require no alias and repeated titles receive distinct article IDs");
+
+  const forgedId = randomUUID();
+  const forgedCreateResponse = await request("/api/posts", { authenticated: true, method: "POST", json: { ...publishedPayload, id: forgedId } });
+  const forgedCreateStatus = forgedCreateResponse.status;
+  const forgedCreate = await forgedCreateResponse.json();
+  if (forgedCreate.post?.id) disposableIds.add(forgedCreate.post.id);
+  assert.equal(forgedCreateStatus, 400, "The client must not choose a new SQL record's ID.");
+  await readJson(await request(`/api/posts/${draft.id}`, { authenticated: true, method: "PUT", json: { ...publishedPayload, id: forgedId } }), 400, "reject changing persisted post ID");
+  const afterForgedId = await readJson(await request(`/api/posts/${draft.id}`, { authenticated: true }), 200, "original post after attempted ID overwrite");
+  assert.equal(afterForgedId.post.id, draft.id);
+  assert.equal(afterForgedId.post.title, publishedPayload.title);
+  assert.equal(afterForgedId.post.content, publishedPayload.content);
+  assert.equal((await request(`/api/posts/${forgedId}`, { authenticated: true })).status, 404);
+  passed("client-supplied IDs cannot create or overwrite database identifiers");
+
+  const renamedPayload = { ...publishedPayload, title: `修改后的博客标题-${runId}` };
+  const renamed = await readJson(await request(`/api/posts/${draft.id}`, { authenticated: true, method: "PUT", json: renamedPayload }), 200, "rename published post");
+  assert.equal(renamed.post.id, draft.id, "Renaming must preserve the stored ID.");
+  const renamedArticle = await request(`/posts/${draft.id}`);
+  assert.equal(renamedArticle.status, 200, "The ID route must survive title edits.");
+  const renamedHtml = await renamedArticle.text();
+  assert.ok(renamedHtml.includes(renamedPayload.title), "The route must resolve the updated post.");
+  assert.ok(renamedHtml.includes(`${runId} body marker`));
+  for (const title of [draftPayload.title, publishedPayload.title, renamedPayload.title]) {
+    assert.equal((await request(`/posts/${encodeURIComponent(title)}`)).status, 404, "Previous and current title paths must not resolve.");
+  }
+  for (const path of [`/articles?q=${runId}`, `/archive?q=${runId}`]) {
+    const listing = await request(path);
+    assert.equal(listing.status, 200);
+    const html = await listing.text();
+    assert.ok(html.includes(`href="/posts/${draft.id}"`), "Public listings must link to the immutable post ID.");
+    assert.ok(!html.includes(`href="/posts/${encodeURIComponent(renamedPayload.title)}"`), "Public listing links must not depend on the title.");
+  }
+  passed("ID links survive title edits across article lists and archives while title routes stay unavailable");
 
   // The development framework may reject a hostile Origin before the API runs,
   // with its own plain-text response. The security contract is the 403 status.
@@ -197,12 +245,12 @@ try {
   await readJson(await request(`/api/posts/${draft.id}`, { authenticated: true, method: "PUT", json: draftPayload }), 200, "return to draft");
   const afterUnpublish = await readJson(await request("/api/posts"), 200, "public after unpublish");
   assert.ok(!afterUnpublish.posts.some((post) => post.id === draft.id));
-  assert.equal((await request(`/posts/${draft.slug}`)).status, 404);
+  assert.equal((await request(`/posts/${draft.id}`)).status, 404);
   passed("returning a post to draft removes it from public lists and article URLs");
 
   const note = await readJson(await request("/api/posts", {
     authenticated: true, method: "POST",
-    json: { ...publishedPayload, slug: `${runId}-note`, title: `${runId} note`, kind: "note" },
+    json: { ...publishedPayload, title: `${runId} note`, kind: "note" },
   }), 201, "publish note");
   disposableIds.add(note.post.id);
   const notes = await readJson(await request("/api/posts?kind=note"), 200, "note filter");

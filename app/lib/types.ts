@@ -4,7 +4,6 @@ export type PostStatus = "draft" | "published";
 export interface Post {
   id: string;
   title: string;
-  slug: string;
   excerpt: string;
   content: string;
   category: string;
@@ -57,10 +56,10 @@ export interface HomeOverview {
   firstPublishedAt: string | null;
   lastUpdatedAt: string | null;
   activity: { date: string; count: number }[];
-  notes: Pick<Post, "id" | "title" | "slug" | "excerpt" | "publishedAt">[];
+  notes: Pick<Post, "id" | "title" | "excerpt" | "publishedAt">[];
 }
 
-export type PostInput = Pick<Post, "title" | "slug" | "excerpt" | "content" | "category" | "tags" | "kind" | "status" | "coverImage">;
+export type PostInput = Pick<Post, "title" | "excerpt" | "content" | "category" | "tags" | "kind" | "status" | "coverImage">;
 
 export interface AdminSession {
   authenticated: boolean;

@@ -15,7 +15,7 @@ export async function getHomeOverview(): Promise<HomeOverview> {
     db.select({date, count:sql<number>`count(*)`.mapWith(Number)}).from(posts)
       .where(and(eq(posts.status, 'published'),gte(date, beginning.toISOString().slice(0,10))))
       .groupBy(date).orderBy(date),
-    db.select({id:posts.id,title:posts.title,slug:posts.slug,excerpt:posts.excerpt,publishedAt:posts.publishedAt}).from(posts)
+    db.select({id:posts.id,title:posts.title,excerpt:posts.excerpt,publishedAt:posts.publishedAt}).from(posts)
       .where(and(eq(posts.status,'published'),eq(posts.kind,'note')))
       .orderBy(desc(posts.publishedAt),desc(posts.id)).limit(3),
   ]);
