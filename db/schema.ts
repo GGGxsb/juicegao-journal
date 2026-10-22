@@ -1,4 +1,4 @@
-import { index, integer, sqliteTable, text, uniqueIndex } from "drizzle-orm/sqlite-core";
+import { index, integer, primaryKey, sqliteTable, text, uniqueIndex, type AnySQLiteColumn } from "drizzle-orm/sqlite-core";
 
 export const posts = sqliteTable("posts", {
   id: text("id").primaryKey(),
@@ -63,3 +63,31 @@ export const adminRateLimits = sqliteTable("admin_rate_limits", {
   attempts: integer("attempts").notNull(),
   windowStart: integer("window_start").notNull(),
 });
+
+export const comments = sqliteTable("comments", {
+  id: text("id").primaryKey(),
+  postId: text("post_id").notNull().references(() => posts.id, { onDelete: "cascade" }),
+  nickname: text("nickname").notNull(),
+  content: text("content").notNull(),
+  parentId: text("parent_id").references((): AnySQLiteColumn => comments.id, { onDelete: "set null" }),
+  isAdmin: integer("is_admin", { mode: "boolean" }).notNull().default(false),
+  status: text("status", { enum: ["pending", "approved", "rejected"] }).notNull().default("pending"),
+  createdAt: text("created_at").notNull(),
+}, table => [
+  index("comments_post_status_created_idx").on(table.postId, table.status, table.createdAt, table.id),
+  index("comments_status_created_idx").on(table.status, table.createdAt, table.id),
+  index("comments_created_idx").on(table.createdAt, table.id),
+  index("comments_parent_idx").on(table.parentId),
+]);
+
+export const postLikes = sqliteTable("post_likes", {
+  postId: text("post_id").notNull().references(() => posts.id, { onDelete: "cascade" }),
+  visitorHash: text("visitor_hash").notNull(),
+  createdAt: text("created_at").notNull(),
+}, table => [primaryKey({ columns: [table.postId, table.visitorHash] })]);
+
+export const interactionRateLimits = sqliteTable("interaction_rate_limits", {
+  key: text("key").primaryKey(),
+  attempts: integer("attempts").notNull(),
+  windowStart: integer("window_start").notNull(),
+}, table => [index("interaction_rate_window_idx").on(table.windowStart)]);

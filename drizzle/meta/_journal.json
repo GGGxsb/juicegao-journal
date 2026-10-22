@@ -15,6 +15,13 @@
       "when": 1792564972344,
       "tag": "0001_daily_nico_minoru",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1792670400000,
+      "tag": "0002_comments_and_likes",
+      "breakpoints": true
     }
   ]
 }

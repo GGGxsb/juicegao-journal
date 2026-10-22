@@ -17,6 +17,29 @@ export interface Post {
   updatedAt: string;
 }
 
+export interface Pagination {
+  page: number;
+  pageSize: number;
+  total: number;
+  totalPages: number;
+}
+
+export interface PostStatistics {
+  articles: number;
+  notes: number;
+  words: number;
+  total: number;
+  published: number;
+  drafts: number;
+}
+
+export interface PostCollection {
+  posts: Post[];
+  pagination: Pagination;
+  stats: PostStatistics;
+  categories: string[];
+}
+
 export interface SiteSettings {
   name: string;
   bio: string;

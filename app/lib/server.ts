@@ -1,13 +1,13 @@
 import { env } from "./platform";
 import { requestOrigin } from "./request-security";
-import { and, desc, eq } from "drizzle-orm";
+import { and, asc, count, desc, eq, or, sql, type SQL } from "drizzle-orm";
 import { z } from "zod";
 import { getDb } from "@/db";
 import { media, posts, siteSettings } from "@/db/schema";
 import { getAdminSession, requireAdmin, type AdminPrincipal } from "./admin-auth";
 import { ApiError } from "./errors";
 export { getAdminSession, requireAdmin, ApiError };
-import type { Post, PostInput, SiteSettings } from "./types";
+import type { Post, PostCollection, PostInput, PostKind, PostStatistics, PostStatus, SiteSettings } from "./types";
 
 export const DEFAULT_SETTINGS: SiteSettings = {
   name: "JuiceGao",
@@ -34,14 +34,117 @@ export async function authorizeMutation(request: Request): Promise<AdminPrincipa
   return requireAdmin();
 }
 
-export async function listPosts(options: { scope?: "published" | "all"; kind?: "article" | "note"; limit?: number } = {}): Promise<Post[]> {
-  if (options.scope === "all") await requireAdmin();
-  const conditions = [];
-  if (options.scope !== "all") conditions.push(eq(posts.status, "published"));
-  if (options.kind) conditions.push(eq(posts.kind, options.kind));
-  return getDb().select().from(posts).where(and(...conditions))
-    .orderBy(desc(posts.publishedAt), desc(posts.updatedAt))
-    .limit(Math.max(1, Math.min(options.limit ?? 500, 1000)));
+export interface PostQueryOptions {
+  scope?: "published" | "all";
+  kind?: PostKind;
+  category?: string;
+  q?: string;
+  status?: PostStatus;
+  page?: number;
+  pageSize?: number;
+}
+
+const postQuerySchema = z.object({
+  scope: z.enum(["published", "all"]).default("published"),
+  kind: z.enum(["article", "note"]).optional(),
+  category: z.string().trim().min(1).max(60).optional(),
+  q: z.string().trim().max(200).optional(),
+  status: z.enum(["draft", "published"]).optional(),
+  page: z.number().int().positive().max(Number.MAX_SAFE_INTEGER).default(1),
+  pageSize: z.number().int().min(1).max(50).default(10),
+}).strict().superRefine((value, context) => {
+  if (value.scope !== "all" && value.status !== undefined) {
+    context.addIssue({ code: z.ZodIssueCode.custom, path: ["status"], message: "状态筛选仅供已登录的管理页面使用。" });
+  }
+});
+
+/** Parse URL parameters once and apply the same validation as server queries. */
+export function parsePostQuery(params: URLSearchParams): PostQueryOptions {
+  const values: Record<string, string | number> = {};
+  for (const [key, raw] of params) {
+    if (Object.hasOwn(values, key)) throw new ApiError(400, `参数 ${key} 不可重复。`);
+    if (key === "page" || key === "pageSize") {
+      if (!/^[1-9]\d*$/.test(raw)) throw new ApiError(400, `参数 ${key} 必须是正整数。`);
+      values[key] = Number(raw);
+    } else {
+      Object.defineProperty(values, key, { value: raw, enumerable: true, configurable: true });
+    }
+  }
+  return parseInput(postQuerySchema, values);
+}
+
+// Keep the complete corpus in SQLite. This also strips Unicode whitespace when
+// counting characters, without transferring every article body to the browser.
+const whitespaceCharacters = "\u0009\u000a\u000b\u000c\u000d\u0020\u00a0\u1680\u2000\u2001\u2002\u2003\u2004\u2005\u2006\u2007\u2008\u2009\u200a\u2028\u2029\u202f\u205f\u3000\ufeff";
+let contentWithoutWhitespace: SQL = sql`${posts.content}`;
+for (const character of whitespaceCharacters) {
+  contentWithoutWhitespace = sql`replace(${contentWithoutWhitespace}, ${character}, '')`;
+}
+
+async function postOverview(scope: "published" | "all"): Promise<Pick<PostCollection, "stats" | "categories">> {
+  const db = getDb();
+  const [statistics, categoryRows] = await Promise.all([
+    db.select({
+      articles: sql<number>`coalesce(sum(case when ${posts.kind} = 'article' then 1 else 0 end), 0)`.mapWith(Number),
+      notes: sql<number>`coalesce(sum(case when ${posts.kind} = 'note' then 1 else 0 end), 0)`.mapWith(Number),
+      words: sql<number>`coalesce(sum(length(${contentWithoutWhitespace})), 0)`.mapWith(Number),
+      total: count(),
+      published: sql<number>`coalesce(sum(case when ${posts.status} = 'published' then 1 else 0 end), 0)`.mapWith(Number),
+      drafts: sql<number>`coalesce(sum(case when ${posts.status} = 'draft' then 1 else 0 end), 0)`.mapWith(Number),
+    }).from(posts).where(scope === "all" ? undefined : eq(posts.status, "published")),
+    db.selectDistinct({ category: posts.category }).from(posts)
+      .where(and(eq(posts.status, "published"), eq(posts.kind, "article")))
+      .orderBy(asc(posts.category)),
+  ]);
+  const stats: PostStatistics = statistics[0];
+  return { stats, categories: categoryRows.map((row) => row.category).filter(Boolean) };
+}
+
+/** Global statistics and navigation categories, without loading article bodies. */
+export async function getPostOverview(scope: "published" | "all" = "published"): Promise<Pick<PostCollection, "stats" | "categories">> {
+  if (scope !== "published" && scope !== "all") throw new ApiError(400, "无效的文章范围。");
+  if (scope === "all") await requireAdmin();
+  return postOverview(scope);
+}
+
+export async function queryPosts(options: PostQueryOptions = {}): Promise<PostCollection> {
+  const value = parseInput(postQuerySchema, options);
+  if (value.scope === "all") await requireAdmin();
+  const conditions: SQL[] = [];
+  if (value.scope === "published") conditions.push(eq(posts.status, "published"));
+  if (value.status) conditions.push(eq(posts.status, value.status));
+  if (value.kind) conditions.push(eq(posts.kind, value.kind));
+  if (value.category) conditions.push(eq(posts.category, value.category));
+  if (value.q) {
+    // LIKE's escape character, % and _ are all literal user input.
+    const pattern = `%${value.q.toLowerCase().replace(/[\\%_]/g, "\\$&")}%`;
+    const matches = or(
+      ...[posts.title, posts.content, posts.excerpt, posts.category].map((column) => sql`journal_lower(${column}) like ${pattern} escape '\\'`),
+      sql`exists (select 1 from json_each(${posts.tags}) where journal_lower(cast(json_each.value as text)) like ${pattern} escape '\\')`,
+    );
+    if (matches) conditions.push(matches);
+  }
+  const db = getDb();
+  const where = and(...conditions);
+  const [[result], overview] = await Promise.all([
+    db.select({ total: count() }).from(posts).where(where),
+    postOverview(value.scope),
+  ]);
+  const total = result.total;
+  const totalPages = Math.max(1, Math.ceil(total / value.pageSize));
+  const page = Math.min(value.page, totalPages);
+  const ordering = value.scope === "all"
+    ? [desc(posts.updatedAt), desc(posts.id)]
+    : [desc(posts.publishedAt), desc(posts.updatedAt), desc(posts.id)];
+  const pagePosts = await db.select().from(posts).where(where)
+    .orderBy(...ordering)
+    .limit(value.pageSize).offset((page - 1) * value.pageSize);
+  return { posts: pagePosts, pagination: { page, pageSize: value.pageSize, total, totalPages }, ...overview };
+}
+
+/** @deprecated Use queryPosts so callers can navigate the complete collection. */
+export async function listPosts(options: { scope?: "published" | "all"; kind?: PostKind; limit?: number } = {}): Promise<Post[]> {
+  return (await queryPosts({ scope: options.scope, kind: options.kind, pageSize: options.limit ?? 10 })).posts;
 }
 
 export async function getPostBySlug(slug: string): Promise<Post | null> {

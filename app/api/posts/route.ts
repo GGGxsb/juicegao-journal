@@ -1,13 +1,10 @@
-import { apiRoute, authorizeMutation, createPost, json, listPosts, readJson, validatePost } from "@/app/lib/server";
+import { apiRoute, authorizeMutation, createPost, json, parsePostQuery, queryPosts, readJson, validatePost } from "@/app/lib/server";
 
 export const dynamic = "force-dynamic";
 
 export async function GET(request: Request) {
   return apiRoute(async () => {
-    const params = new URL(request.url).searchParams;
-    const kind = params.get("kind");
-    const posts = await listPosts({ scope: params.get("scope") === "all" ? "all" : "published", ...(kind === "article" || kind === "note" ? { kind } : {}) });
-    return json({ posts });
+    return json(await queryPosts(parsePostQuery(new URL(request.url).searchParams)));
   });
 }
 

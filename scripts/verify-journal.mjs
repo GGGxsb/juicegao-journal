@@ -163,7 +163,7 @@ try {
   assert.equal(draft.status, "draft");
   assert.equal(draft.publishedAt, "");
   assert.ok(draft.createdAt && draft.updatedAt);
-  const adminPosts = await readJson(await request("/api/posts?scope=all", { authenticated: true }), 200, "admin draft list");
+  const adminPosts = await readJson(await request(`/api/posts?scope=all&q=${encodeURIComponent(runId)}`, { authenticated: true }), 200, "admin draft list");
   assert.ok(adminPosts.posts.some((post) => post.id === draft.id && post.status === "draft"));
   const afterDraft = await readJson(await request("/api/posts"), 200, "public after draft");
   assert.ok(!afterDraft.posts.some((post) => post.id === draft.id));

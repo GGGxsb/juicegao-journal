@@ -110,6 +110,9 @@ function getState() {
   mkdirSync(directory, { recursive: true, mode: 0o700 });
   const connection = new DatabaseSync(path.join(directory, "journal.sqlite"));
   try {
+    // SQLite's built-in lower()/LIKE fold ASCII only. Match the application's
+    // Unicode-aware JavaScript search while keeping filtering inside SQLite.
+    connection.function("journal_lower", { deterministic: true }, (value) => value === null ? null : String(value).toLowerCase());
     connection.exec("PRAGMA journal_mode = WAL; PRAGMA busy_timeout = 5000; PRAGMA foreign_keys = ON;");
   } catch (error) {
     connection.close();
