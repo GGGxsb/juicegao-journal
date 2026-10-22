@@ -1,0 +1,58 @@
+name: juicegao-journal
+
+services:
+  app:
+    build:
+      context: ..
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      DATA_DIR: /app/data
+      PORT: "3000"
+      HOSTNAME: 0.0.0.0
+      TRUST_PROXY: "true"
+      APP_ORIGIN: ${APP_ORIGIN:?Set APP_ORIGIN to your HTTPS domain in .env}
+      ADMIN_SETUP_TOKEN_HASH: ${ADMIN_SETUP_TOKEN_HASH:-}
+    volumes:
+      - journal-data:/app/data
+    expose:
+      - "3000"
+    networks:
+      - journal
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    init: true
+
+  web:
+    image: nginx:stable-alpine
+    restart: unless-stopped
+    depends_on:
+      app:
+        condition: service_healthy
+    environment:
+      SITE_DOMAIN: ${SITE_DOMAIN:?Set SITE_DOMAIN to your certificate's domain in .env}
+      NGINX_ENVSUBST_FILTER: ^SITE_DOMAIN
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.https.conf.template:/etc/nginx/templates/default.conf.template:ro
+      - type: bind
+        source: ./certs
+        target: /etc/nginx/certs
+        read_only: true
+        bind:
+          create_host_path: false
+    networks:
+      - journal
+    security_opt:
+      - no-new-privileges:true
+
+networks:
+  journal:
+
+volumes:
+  journal-data:
+    name: ${JOURNAL_DATA_VOLUME:-juicegao_data}

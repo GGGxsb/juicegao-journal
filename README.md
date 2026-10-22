@@ -112,7 +112,64 @@ printf '%s\n' "$restore_volume"
 
 仅在解压命令成功后，把 `.env` 中 `JOURNAL_DATA_VOLUME` 改为最后显示的新卷名，再执行 `docker compose up -d`。确认内容和登录正常后再自行决定何时清理旧备份与旧卷。
 
-## 有域名后启用 HTTPS
+## 使用已有证书启用 Nginx HTTPS
+
+网站默认由 Docker 内的 Nginx 反向代理 Next.js。已有证书时可以继续使用 Nginx，通过 `deploy/compose.nginx-https.yaml` 开启 HTTPS，无需在宿主机另装 Nginx。
+
+1. 在 DNS 中将实际使用域名的 A 记录指向服务器，若配置了 AAAA 记录，也应指向本机可用的 IPv6。安全组与系统防火墙放行 TCP `80` 和 `443`；确认这两个端口未被其他站点占用。
+2. 先备份数据，在服务器项目目录拉取最新代码，创建证书目录：
+
+   ```sh
+   git pull --ff-only
+   mkdir -p deploy/certs
+   ```
+
+   将证书平台下载的 Nginx 格式文件（PEM 编码）上传为：
+
+   ```text
+   deploy/certs/fullchain.pem  # 站点证书及中间证书链
+   deploy/certs/privkey.pem   # 对应的私钥
+   ```
+
+   `fullchain.pem` 中站点证书应位于中间证书之前；若平台提供的是 `.crt` 或 `.key` 文件，确认是 PEM 编码后按上述名称保存。`certs/` 已从 Git 与镜像构建中排除，证书只读挂载到 Nginx 容器。
+3. 编辑原 `.env`，保留初始化散列和数据卷配置，只设置或更新以下两项。示例域名需要替换成证书覆盖的真实域名：
+
+   ```dotenv
+   APP_ORIGIN=https://example.com
+   SITE_DOMAIN=example.com
+   ```
+
+4. 限制私钥读取权限，构建应用并检查 Nginx 配置。以下操作不会先停止现有网站：
+
+   ```sh
+   sudo chmod 600 deploy/certs/privkey.pem
+   sudo docker compose --env-file .env -f deploy/compose.nginx-https.yaml build app
+   sudo docker compose --env-file .env -f deploy/compose.nginx-https.yaml run --rm --no-deps web nginx -t
+   ```
+
+   只有显示配置检查成功后，才继续切换：
+
+   ```sh
+   sudo docker compose --env-file .env -f deploy/compose.nginx-https.yaml up -d
+   sudo docker compose --env-file .env -f deploy/compose.nginx-https.yaml ps
+   ```
+
+   配置沿用原项目名称、服务和数据卷，Compose 会更新现有容器。之后通过 `https://你的域名` 访问网站，`https://你的域名/admin` 登录后台，无需 SSH 隧道。HTTP `80` 会跳转到 HTTPS，原默认 `8080` 入口不再由此配置发布。
+
+5. 后续更新、日志与重启都使用同一配置前缀，例如：
+
+   ```sh
+   sudo docker compose --env-file .env -f deploy/compose.nginx-https.yaml logs --tail=100 app web
+   ```
+
+   此方案使用你已有的证书，不负责自动续期。续期后替换目录里的两个文件，再检查并重载：
+
+   ```sh
+   sudo docker compose --env-file .env -f deploy/compose.nginx-https.yaml exec web nginx -t
+   sudo docker compose --env-file .env -f deploy/compose.nginx-https.yaml exec web nginx -s reload
+   ```
+
+## 有域名后启用自动 HTTPS（Caddy）
 
 提供了一个独立的 Caddy 部署配置，自动申请和续期域名证书。先将域名的 A 记录指向 `YOUR_SERVER_IP`，确保服务器的 `80`、`443` 端口未被其他服务占用，并在安全组及防火墙放行 TCP `80`、TCP `443`。若已有网站占用这两个端口，请继续使用前面的 IP 与 SSH 隧道方案，不要直接启动本节配置。
 
