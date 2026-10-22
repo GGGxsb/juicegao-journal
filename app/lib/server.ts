@@ -17,6 +17,8 @@ export const DEFAULT_SETTINGS: SiteSettings = {
   github: "",
   email: "",
   location: "",
+  education: "",
+  startedAt: "",
 };
 
 export function requireSameOrigin(request: Request): void {
@@ -197,6 +199,11 @@ const settingsSchema = z.object({
   }, "GitHub 地址应为 https://github.com/ 开头的链接。"),
   email: z.union([z.literal(""), z.string().email("请输入有效邮箱。")]).transform((value) => value.trim()),
   location: z.string().trim().max(100),
+  education: z.string().trim().max(6000).default(""),
+  startedAt: z.union([z.literal(""), z.string().regex(/^\d{4}-\d{2}-\d{2}$/).refine(value => {
+    const parsed = new Date(`${value}T00:00:00.000Z`);
+    return Number.isFinite(parsed.getTime()) && parsed.toISOString().slice(0, 10) === value && value <= new Intl.DateTimeFormat('en-CA', {timeZone:'Asia/Shanghai',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
+  }, "请选择有效且不晚于今天的建站日期。")]).default(""),
 }).strict();
 
 function parseInput<Schema extends z.ZodTypeAny>(schema: Schema, input: unknown): z.output<Schema> {

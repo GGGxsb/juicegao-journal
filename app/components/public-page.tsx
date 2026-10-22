@@ -1,14 +1,15 @@
 import { notFound } from 'next/navigation';
 import { ApiError, getPostOverview, getSettings, parsePostQuery, queryPosts } from '../lib/server';
 import Journal from './site';
+import { getHomeOverview } from '../lib/home';
 
 export type PublicSearchParams = Promise<Record<string, string | string[] | undefined>>;
 type PublicView = 'home' | 'articles' | 'notes' | 'archive' | 'about';
 
 export default async function PublicPage({ view, searchParams }: { view: PublicView; searchParams?: PublicSearchParams }) {
   if (view === 'home' || view === 'about') {
-    const [settings, overview] = await Promise.all([getSettings(), getPostOverview()]);
-    return <Journal settings={settings} posts={[]} view={view} {...overview} />;
+    const [settings, overview, home] = await Promise.all([getSettings(), getPostOverview(), view === 'home' ? getHomeOverview() : undefined]);
+    return <Journal settings={settings} posts={[]} view={view} home={home} {...overview} />;
   }
 
   const values = await searchParams ?? {};

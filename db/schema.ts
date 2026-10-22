@@ -28,6 +28,8 @@ export const siteSettings = sqliteTable("site_settings", {
   github: text("github").notNull().default(""),
   email: text("email").notNull().default(""),
   location: text("location").notNull().default(""),
+  education: text("education").notNull().default(""),
+  startedAt: text("started_at").notNull().default(""),
   updatedAt: text("updated_at").notNull(),
 });
 

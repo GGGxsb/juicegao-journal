@@ -48,6 +48,16 @@ export interface SiteSettings {
   github: string;
   email: string;
   location: string;
+  education: string;
+  startedAt: string;
+}
+
+export interface HomeOverview {
+  today: string;
+  firstPublishedAt: string | null;
+  lastUpdatedAt: string | null;
+  activity: { date: string; count: number }[];
+  notes: Pick<Post, "id" | "title" | "slug" | "excerpt" | "publishedAt">[];
 }
 
 export type PostInput = Pick<Post, "title" | "slug" | "excerpt" | "content" | "category" | "tags" | "kind" | "status" | "coverImage">;
