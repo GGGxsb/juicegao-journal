@@ -16,6 +16,15 @@ export default function HomeContent({settings,bio,description,stats,home}: {sett
   return <div className="home-sections">
     <section className="home-section"><h2>关于我</h2><p>{bio||'学习经历与生活记录。'}</p>{description&&<div className="home-copy"><Markdown content={description}/></div>}<a href="/about" className="more-link">更多关于我 <ArrowRight size={15}/></a></section>
     <ResumeSections settings={settings}/>
-    <section className="home-section"><h2>站点统计</h2><dl className="home-statistics"><div><dt>运行天数</dt><dd>{onlineDays===null?'—':onlineDays.toLocaleString()}</dd></div><div><dt>最近更新</dt><dd className="home-stat-date">{home?.lastUpdatedAt?<time dateTime={home.lastUpdatedAt}>{dayInShanghai(home.lastUpdatedAt)}</time>:'—'}</dd></div><div><dt>累计字数</dt><dd>{(stats?.words??0).toLocaleString()}</dd></div><div><dt>文章总数</dt><dd><a href="/articles">{(stats?.total??0).toLocaleString()}</a></dd></div></dl>{home&&<ActivityCalendars home={home}/>}</section>
+    <section className="home-section home-statistics-section" aria-labelledby="home-statistics-heading">
+      <h2 id="home-statistics-heading">站点统计</h2>
+      <dl className="home-statistics">
+        <div><dt>运行天数</dt><dd>{onlineDays===null?'—':onlineDays.toLocaleString()}</dd></div>
+        <div><dt>最近更新</dt><dd className="home-stat-date">{home?.lastUpdatedAt?<time dateTime={home.lastUpdatedAt}>{dayInShanghai(home.lastUpdatedAt)}</time>:'—'}</dd></div>
+        <div><dt>累计字数</dt><dd>{(stats?.words??0).toLocaleString()}</dd></div>
+        <div><dt>文章总数</dt><dd><a href="/articles" aria-label={`查看全部 ${stats?.total??0} 篇文章`}>{(stats?.total??0).toLocaleString()}</a></dd></div>
+      </dl>
+      {home&&<ActivityCalendars home={home}/>}
+    </section>
   </div>;
 }

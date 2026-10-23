@@ -21,6 +21,7 @@
 | 搜索与分享信息 | [BaseHead.astro](https://github.com/Axi404/Axi-Theme/blob/c6470e7308bad839489932601e2be08f9b542e70/src/components/BaseHead.astro) | 页面独立标题/摘要、canonical、Open Graph、Twitter 大图卡片及文章时间 |
 | 教育经历 | [首页](https://github.com/Axi404/Axi-Theme/blob/c6470e7308bad839489932601e2be08f9b542e70/src/pages/index.astro)、[Section.astro](https://github.com/Axi404/Axi-Theme/blob/c6470e7308bad839489932601e2be08f9b542e70/src/components/home/Section.astro)、[Card.astro](https://github.com/Axi404/Axi-Theme/blob/c6470e7308bad839489932601e2be08f9b542e70/src/components/user/Card.astro) | 桌面 144px 左标题、右卡片；12px 圆角、24px / 16px 内边距；18px 学校、14px 专业、12px 等宽日期及 4px 间距；填写网址后卡片整体可点击，200ms 边框和背景过渡；768px 以下上下排列 |
 | 履历 | [Card.astro](https://github.com/Axi404/Axi-Theme/blob/c6470e7308bad839489932601e2be08f9b542e70/src/components/user/Card.astro) | 与教育经历共用卡片组件，机构、职位、日期及 Markdown 说明在卡片内纵向排列；同样的边框、间距和悬停效果 |
+| 站点统计卡片 | [Card.astro](https://github.com/Axi404/Axi-Theme/blob/c6470e7308bad839489932601e2be08f9b542e70/src/components/user/Card.astro) | 本站扩展：四项统计分别使用 12px 圆角、1px 边框与主题背景的小卡片；桌面四列、窄屏两列；文章总数卡片可整体点击，沿用 200ms 悬停与键盘聚焦效果 |
 
 适配差异：本站保留 SQL 文章 ID 路由与后台 Markdown 写作，通过受限 directive 使用正文组件。点击粒子设有数量上限，跳过文本输入和后台；所有非必要动效尊重系统“减少动态效果”。标签页和折叠继续提供 ARIA 与键盘操作，GitHub API 失败时保留可访问的静态卡片。
 
