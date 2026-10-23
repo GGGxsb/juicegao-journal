@@ -1,9 +1,12 @@
+import type { CommentProvider } from './comment-identity-types';
 export type CommentStatus = "pending" | "approved" | "rejected";
 
 export interface PublicComment {
   id: string;
   postId: string;
   nickname: string;
+  provider: CommentProvider | '';
+  avatar: string;
   content: string;
   parentId: string | null;
   replyTo: string | null;

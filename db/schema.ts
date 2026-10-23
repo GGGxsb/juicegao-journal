@@ -89,10 +89,41 @@ export const adminRateLimits = sqliteTable("admin_rate_limits", {
   windowStart: integer("window_start").notNull(),
 });
 
+export const commentAccounts = sqliteTable("comment_accounts", {
+  id: text("id").primaryKey(),
+  provider: text("provider", { enum: ["qq", "github"] }).notNull(),
+  clientId: text("client_id").notNull(),
+  subject: text("subject").notNull(),
+  nickname: text("nickname").notNull(),
+  avatar: text("avatar").notNull().default(""),
+  createdAt: text("created_at").notNull(),
+  updatedAt: text("updated_at").notNull(),
+}, table => [
+  uniqueIndex("comment_accounts_provider_subject_unique").on(table.provider, table.clientId, table.subject),
+  check("comment_accounts_provider_check", sql`${table.provider} IN ('qq', 'github')`),
+]);
+export const commentSessions = sqliteTable("comment_sessions", {
+  tokenHash: text("token_hash").primaryKey(),
+  accountId: text("account_id").notNull().references(() => commentAccounts.id, { onDelete: "cascade" }),
+  expiresAt: integer("expires_at").notNull(),
+  createdAt: integer("created_at").notNull(),
+}, table => [index("comment_sessions_expiry_idx").on(table.expiresAt)]);
+export const commentOauthAttempts = sqliteTable("comment_oauth_attempts", {
+  stateHash: text("state_hash").primaryKey(),
+  browserHash: text("browser_hash").notNull(),
+  provider: text("provider", { enum: ["qq", "github"] }).notNull(),
+  postId: text("post_id").notNull().references(() => posts.id, { onDelete: "cascade" }),
+  verifier: text("verifier").notNull(),
+  expiresAt: integer("expires_at").notNull(),
+}, table => [index("comment_oauth_expiry_idx").on(table.expiresAt), check("comment_oauth_provider_check", sql`${table.provider} IN ('qq', 'github')`)]);
+
 export const comments = sqliteTable("comments", {
   id: text("id").primaryKey(),
   postId: text("post_id").notNull().references(() => posts.id, { onDelete: "cascade" }),
   nickname: text("nickname").notNull(),
+  authorId: text("author_id").references(() => commentAccounts.id, { onDelete: "set null" }),
+  provider: text("provider", { enum: ["", "qq", "github"] }).notNull().default(""),
+  avatar: text("avatar").notNull().default(""),
   content: text("content").notNull(),
   parentId: text("parent_id").references((): AnySQLiteColumn => comments.id, { onDelete: "set null" }),
   isAdmin: integer("is_admin", { mode: "boolean" }).notNull().default(false),
@@ -103,6 +134,8 @@ export const comments = sqliteTable("comments", {
   index("comments_status_created_idx").on(table.status, table.createdAt, table.id),
   index("comments_created_idx").on(table.createdAt, table.id),
   index("comments_parent_idx").on(table.parentId),
+  index("comments_author_idx").on(table.authorId),
+  check("comments_provider_check", sql`${table.provider} IN ('', 'qq', 'github')`),
 ]);
 
 export const postLikes = sqliteTable("post_likes", {

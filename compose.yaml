@@ -13,6 +13,10 @@ services:
       TRUST_PROXY: "true"
       APP_ORIGIN: ${APP_ORIGIN:-}
       ADMIN_SETUP_TOKEN_HASH: ${ADMIN_SETUP_TOKEN_HASH:-}
+      QQ_OAUTH_APP_ID: ${QQ_OAUTH_APP_ID:-}
+      QQ_OAUTH_APP_KEY: ${QQ_OAUTH_APP_KEY:-}
+      GITHUB_OAUTH_CLIENT_ID: ${GITHUB_OAUTH_CLIENT_ID:-}
+      GITHUB_OAUTH_CLIENT_SECRET: ${GITHUB_OAUTH_CLIENT_SECRET:-}
     volumes:
       - journal-data:/app/data
     expose:
