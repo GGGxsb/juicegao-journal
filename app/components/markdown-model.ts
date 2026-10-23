@@ -29,7 +29,7 @@ function collectHeadings(tree: Root): MarkdownHeading[] {
   const headings: MarkdownHeading[] = [];
   const hiddenHeadings = new WeakSet<object>();
   function markHidden(node: Nodes, hidden = false) {
-    const inside = hidden || ('name' in node && ['details', 'tabs', 'tab'].includes(String(node.name)));
+    const inside = hidden || ('name' in node && ['details', 'collapse', 'tabs', 'tab'].includes(String(node.name)));
     if (inside && node.type === 'heading') hiddenHeadings.add(node);
     if ('children' in node) node.children.forEach(child => markHidden(child as Nodes, inside));
   }

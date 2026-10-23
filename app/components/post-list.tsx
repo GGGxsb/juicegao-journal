@@ -16,7 +16,7 @@ export default function PostList({ posts }: PostListProps) {
   return <div className="post-list">{posts.map(post => <article className="post-item" key={post.id}>
     <a href={postHref(post)}>
       <div className="post-summary">
-        <h2>{post.title}</h2>
+        <div className="post-title-row"><h2>{post.title}</h2><svg className="axi-redirect" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></div>
         {post.excerpt && <p>{post.excerpt}</p>}
         <div className="post-meta">
           <time dateTime={post.publishedAt}>{formatDate(post.publishedAt)}</time>

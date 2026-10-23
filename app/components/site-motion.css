@@ -1,27 +1,38 @@
-@keyframes site-enter{from{opacity:.3;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
-@keyframes surface-enter{from{opacity:0;transform:translateY(-6px) scale(.98)}to{opacity:1;transform:translateY(0) scale(1)}}
-@keyframes reader-zoom-enter{from{opacity:0;transform:scale(.94)}to{opacity:1;transform:scale(1)}}
-.journal>main{animation:site-enter .6s cubic-bezier(.2,.8,.2,1) both}
-.journal .site-name,.journal .main-nav>a,.journal .profile-avatar,.journal .post-cover,.journal .post-summary h2,.journal .tag-directory>a,.journal .collection-directory>a,.journal .article-neighbors>a{transition:transform .3s cubic-bezier(.2,.8,.2,1),color .2s,border-color .25s,box-shadow .3s}
-.journal .post-cover{will-change:auto}
-.journal .post-item>a:hover .post-cover{transform:scale(1.035);box-shadow:0 10px 26px #243e5515}
-.journal .post-item>a:hover .post-summary h2{transform:translateX(4px)}
-.journal .profile-avatar:hover{transform:rotate(-2deg) translateY(-3px);box-shadow:0 12px 30px #659eb922}
-.journal .tag-directory>a:hover,.journal .collection-directory>a:hover{transform:translateY(-4px);box-shadow:0 12px 28px #31465712}
-.journal .article-neighbors>a:hover{transform:translateY(-3px)}
-.journal .main-nav>a{position:relative}
-.journal .main-nav>a:after{content:'';position:absolute;left:0;right:0;bottom:-6px;height:2px;border-radius:2px;background:var(--accent);transform:scaleX(0);transform-origin:left;transition:transform .25s}
-.journal .main-nav>a:hover:after,.journal .main-nav>a.active:after{transform:scaleX(1)}
-.journal .blog-menu[open] .blog-dropdown{animation:surface-enter .22s cubic-bezier(.2,.8,.2,1) both;transform-origin:top left}
-.journal .search-dialog,.reader-dialog[open]{animation:surface-enter .26s cubic-bezier(.2,.8,.2,1) both}
-.reader-dialog.reader-image-dialog[open]{animation:none}
-.reader-image-dialog[open] .reader-image-dismiss{animation:reader-zoom-enter .3s cubic-bezier(.2,.8,.2,1) both}
-.journal button:active:not(:disabled){transform:scale(.96)}
-@view-transition{navigation:auto}
-::view-transition-old(root){animation-duration:.16s}
-::view-transition-new(root){animation-duration:.24s}
+/* Axi-Theme: floating Header, 300ms fade-in-up, morphing arrows and click particles.
+   React adaptation and original source links: docs/axi-theme-reference.md. */
+.site-header-shell{height:104px;padding-top:12px;position:sticky;top:0;z-index:25;flex-shrink:0;pointer-events:none}
+.site-header-shell .site-header{height:80px;pointer-events:auto;border:1px solid transparent;border-radius:16px;transition:height .3s,padding .3s,margin-inline .3s,transform .3s,background .15s,border-color .15s,box-shadow .3s}
+.site-header-shell[data-scrolled=true] .site-header{height:64px;padding-inline:18px;margin-inline:8%;background:color-mix(in srgb,var(--bg) 80%,transparent);backdrop-filter:blur(16px);border-color:var(--line);box-shadow:0 10px 15px -3px #27272a14,0 4px 6px -4px #27272a14}
+.site-header-shell[data-show=false] .site-header{transform:translateY(-120%);pointer-events:none}
+.site-header-shell:focus-within .site-header,.site-header-shell:has(.main-nav.is-open) .site-header,.site-header-shell:has(details[open]) .site-header{transform:none;pointer-events:auto}
+.site-header-shell .site-name{min-width:0;overflow:hidden;text-overflow:ellipsis}
+.site-header-shell .main-nav{flex-shrink:0}
+.site-header-shell .header-actions{gap:18px}
+.journal .blog-dropdown{border-radius:12px;backdrop-filter:blur(16px);background:color-mix(in srgb,var(--bg) 85%,transparent)}
+.journal .blog-menu>summary svg{transition:transform .2s ease-in-out}
+.journal .blog-menu[open]>summary svg{transform:rotate(180deg)}
+@keyframes axi-surface-in{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
+.journal .blog-menu[open] .blog-dropdown,.journal .search-dialog,.reader-toc-dialog[open]{animation:axi-surface-in .2s ease-in-out}
+.axi-click-particle{position:fixed;z-index:100;pointer-events:none;border-radius:50%;opacity:0;box-shadow:0 0 6px #ffffffcc;contain:layout style}
+html[data-theme=dark] .axi-click-particle{box-shadow:0 0 8px #ffffff66}
+.post-title-row{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.post-title-row h2{flex:1;min-width:0}
+.axi-redirect{flex-shrink:0;color:var(--muted);margin-top:5px;overflow:visible}
+.axi-redirect line{transform:translateX(16px) scaleX(0);transition:transform .3s ease-in-out}
+.axi-redirect polyline{transform:translateX(0);transition:transform .3s ease-in-out}
+.post-item>a:hover .axi-redirect,.post-item>a:focus-visible .axi-redirect{color:var(--accent)}
+.post-item>a:hover .axi-redirect line,.post-item>a:focus-visible .axi-redirect line{transform:translateX(4px) scaleX(1)}
+.post-item>a:hover .axi-redirect polyline,.post-item>a:focus-visible .axi-redirect polyline{transform:translateX(4px)}
+.article-cover-frame{position:relative;margin-bottom:30px;isolation:isolate}
+.article-cover-frame .article-cover{position:relative;display:block;z-index:1;margin:0;border-radius:16px}
+.article-cover-glow{position:absolute;inset:16px 0 -16px;width:100%;height:100%;object-fit:cover;border-radius:24px;filter:blur(20px);opacity:.6;pointer-events:none;transition:opacity .3s}
+.journal .markdown :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:90px}
+@media(max-width:1023px){.site-header-shell[data-scrolled=true] .site-header{margin-inline:0}}
+@media(max-width:767px){.site-header-shell{height:90px;padding-top:8px}.site-header-shell .site-header{height:74px;gap:20px}.site-header-shell[data-scrolled=true] .site-header{padding-inline:12px}.site-header-shell .main-nav{gap:16px}}
+@media(max-width:560px){.site-header-shell{height:78px}.site-header-shell .site-header{height:62px;gap:12px}.site-header-shell .header-actions{gap:14px}.site-header-shell[data-scrolled=true] .site-header{height:56px}.site-header-shell .main-nav{left:0;right:0;top:70px}.site-header-shell[data-scrolled=true] .main-nav{top:62px}}
 @media(prefers-reduced-motion:reduce){
- .journal>main,.journal .blog-dropdown,.journal .search-dialog,.reader-dialog[open],.reader-image-dialog[open] .reader-image-dismiss{animation:none!important}
- .journal a,.journal img,.journal button,.journal .profile-avatar,.journal .post-summary h2,.journal .main-nav>a:after{transition:none!important;transform:none!important}
- ::view-transition-group(*),::view-transition-old(*),::view-transition-new(*){animation:none!important}
+ html{scroll-behavior:auto}
+ .site-header-shell .site-header,.article-cover-glow,.journal .blog-menu>summary svg,.axi-redirect line,.axi-redirect polyline{transition:none!important}
+ .journal .blog-dropdown,.journal .search-dialog,.reader-toc-dialog[open]{animation:none!important}
+ .axi-click-particle{display:none}
 }

@@ -19,7 +19,7 @@ const components: Components = {
     const property=(key:string)=>String(node?.properties?.[key]??'');
     const kind=property('data-article-kind');
     if(!kind)return <div {...props}>{children}</div>;
-    return <ArticleComponent kind={kind} title={property('data-article-title')} repo={property('data-article-repo')} description={property('data-article-description')} initialOpen={property('data-article-open')==='true'}>{children}</ArticleComponent>;
+    return <ArticleComponent kind={kind} title={property('data-article-title')} repo={property('data-article-repo')} description={property('data-article-description')} initialOpen={property('data-article-open')==='true'} syncKey={property('data-article-sync-key')} galleryGap={Number(property('data-article-gap')||12)} galleryRatio={Number(property('data-article-ratio')||0)}>{children}</ArticleComponent>;
   },
   a({ node: _node, href, children, ...props }) {
     if (!href) return <span>{children}</span>;

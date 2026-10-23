@@ -71,7 +71,7 @@ export default function ArticleReader({ postId, headings }: { postId: string; he
       if (!frame) frame = requestAnimationFrame(measure);
     };
     const enhanceImages = () => {
-      for (const image of main.querySelectorAll<HTMLImageElement>('.article-cover, [data-article-body] img')) {
+      for (const image of main.querySelectorAll<HTMLImageElement>('.article-cover, [data-article-body] img:not([data-reader-skip])')) {
         if (originalImages.has(image)) continue;
         const names = ['tabindex', 'role', 'aria-label', 'aria-haspopup'];
         originalImages.set(image, {

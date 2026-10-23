@@ -50,6 +50,14 @@ try {
   assert.ok(!hostileComponent.includes('<p>行内 <div'), 'Inline directives must never introduce invalid block nesting.');
   passed('Article components render safely; hidden headings stay out of TOC and directive attributes cannot inject HTML');
 
+  const richOptions=render('::::tabs{title="操作系统" syncKey="os"}\n:::tab{title="Windows"}\nWindows 文本。\n:::\n:::tab{title="macOS"}\nmacOS 文本。\n:::\n::::\n\n:::caution{title="注意事项"}\n请备份。\n:::\n\n:::collapse{title="别名折叠" open="true"}\n## 隐藏标题\n:::\n\n:::image-group{gap="18" aspectRatio="1.5"}\n![图一](/media/first.png)\n\n![图二](/media/second.png)\n:::\n\n::github{repo="https://github.com/Axi404/Axi-Theme"}');
+  for(const fragment of ['data-sync-key="os"','aria-selected="true"','rich-callout tone-warning','rich-disclosure is-open','rich-disclosure-line','gap:18px','--image-ratio:1.5','https://github.com/Axi404/Axi-Theme','rich-github-name','Fork 数据待加载'])assert.ok(richOptions.includes(fragment),fragment);
+  assert.deepEqual(getMarkdownHeadings(':::collapse{title="展开"}\n## 内部标题\n:::\n\n## 外部标题').map(heading=>heading.text),['外部标题']);
+  const clampedGallery=render(':::gallery{gap="999" aspectRatio="javascript:alert(1)"}\n![图片](/media/first.png)\n:::');
+  assert.ok(clampedGallery.includes('gap:48px'));
+  assert.doesNotMatch(clampedGallery,/javascript:|alert\(1\)/);
+  passed('Synced-tab attributes, directive aliases, bounded image layout and full GitHub repository URLs render safely');
+
   const math = render('行内 $E=mc^2$。\n\n$$\n\\int_0^1 x^2\\,dx=\\frac13\n$$');
   assert.match(math, /class="katex"/);
   assert.match(math, /class="katex-display"/);
