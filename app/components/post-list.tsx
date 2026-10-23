@@ -13,7 +13,7 @@ const formatDate = (value: string) => new Date(value).toLocaleDateString('zh-CN'
 export default function PostList({ posts }: PostListProps) {
   if (!posts.length) return <p className="empty-state">暂无内容</p>;
 
-  return <div className="post-list">{posts.map(post => <article className="post-item" key={post.id}>
+  return <div className="post-list">{posts.map(post => <article className={`post-item${post.coverImage?' has-cover':''}`} key={post.id}>
     <a href={postHref(post)}>
       <div className="post-summary">
         <div className="post-title-row"><h2>{post.title}</h2><svg className="axi-redirect" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></div>
@@ -24,7 +24,7 @@ export default function PostList({ posts }: PostListProps) {
           <span>{Math.max(1, Math.ceil(post.content.replace(/\s/g, '').length / 400))} 分钟</span>
         </div>
       </div>
-      {post.coverImage && <img className="post-cover" src={post.coverImage} alt="" width={176} height={112} loading="lazy" decoding="async" />}
+      {post.coverImage && <img className="post-cover" src={post.coverImage} alt="" width={1200} height={630} loading="lazy" decoding="async" aria-hidden="true" />}
     </a>
     {!!post.tags.length&&<div className="post-item-tags" aria-label="文章标签">{post.tags.map(tag=><a href={tagHref(tag)} key={tag}>#{tag}</a>)}</div>}
   </article>)}</div>;

@@ -10,7 +10,7 @@
 | 点击粒子 | [BaseLayout.astro](https://github.com/Axi404/Axi-Theme/blob/c6470e7308bad839489932601e2be08f9b542e70/src/layouts/BaseLayout.astro) | 10 个环形及 4 个散射粒子、10 种颜色、1.1 秒淡出，深浅色分别配色 |
 | 滚动导航 | [Header.astro](https://github.com/Axi404/Axi-Theme/blob/c6470e7308bad839489932601e2be08f9b542e70/src/components/basic/Header.astro) | 20px 后收窄、模糊背景与阴影，600px 后下滚隐藏、上滚显示，300ms 过渡 |
 | 内容入场 | [global.css](https://github.com/Axi404/Axi-Theme/blob/c6470e7308bad839489932601e2be08f9b542e70/public/styles/global.css) | 从下方 32px 淡入、300ms、50–150ms 分段延迟 |
-| 文章卡片 | [PostPreview.astro](https://github.com/Axi404/Axi-Theme/blob/c6470e7308bad839489932601e2be08f9b542e70/src/components/pages/PostPreview.astro) | 圆角边框与悬停背景色，箭头线条在 300ms 内伸出 |
+| 文章卡片 | [PostPreview.astro](https://github.com/Axi404/Axi-Theme/blob/c6470e7308bad839489932601e2be08f9b542e70/src/components/pages/PostPreview.astro) | 圆角边框与悬停背景色，箭头线条在 300ms 内伸出；封面在桌面占卡片右侧 60% 并向左渐隐，手机改上方 2/3 向下渐隐，悬停/键盘聚焦时不透明度从 0.5 过渡至 0.7 |
 | 封面光晕 | [Hero.astro](https://github.com/Axi404/Axi-Theme/blob/c6470e7308bad839489932601e2be08f9b542e70/src/components/pages/Hero.astro) | 封面下方模糊副本，滚动到 1/9、2/9、3/9 屏高度时逐级淡化 |
 | 提示框 | [Aside.astro](https://github.com/Axi404/Axi-Theme/blob/c6470e7308bad839489932601e2be08f9b542e70/src/components/user/Aside.astro) | 8px 左色条、12px 圆角及 note/tip/caution/danger 配色 |
 | 折叠 | [Collapse.astro](https://github.com/Axi404/Axi-Theme/blob/c6470e7308bad839489932601e2be08f9b542e70/src/components/user/Collapse.astro) | 网格高度 0fr→1fr、300ms 展开、箭头线条形变 |
