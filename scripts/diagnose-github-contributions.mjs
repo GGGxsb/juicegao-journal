@@ -38,16 +38,20 @@ export async function diagnoseGithub({environment=process.env,fetcher=fetch,prof
       headers:{Authorization:`Bearer ${token}`,'Content-Type':'application/json',Accept:'application/json','User-Agent':'JuiceGao-Journal'},
       body:JSON.stringify({query,variables:{login:username}}),
     });
-    const info={httpStatus:response.status,elapsedMs:Date.now()-start};
+    const contentType=(response.headers.get('content-type')||'').split(';')[0].trim().toLowerCase();
+    const info={httpStatus:response.status,elapsedMs:Date.now()-start,contentType:['application/json','application/graphql-response+json','text/html','text/plain'].includes(contentType)?contentType:'other'};
+    const invalid=(reason,extra={})=>report('invalid_response',{...info,reason,...extra});
     if(response.status===401)return report('invalid_token',info);
     if(response.status===429||(response.status===403&&response.headers.get('x-ratelimit-remaining')==='0'))return report('rate_limited',info);
     if(response.status===403)return report('forbidden',info);
     if(!response.ok)return report('upstream_error',info);
-    const reader=response.body?.getReader();if(!reader)return report('invalid_response',info);
+    const reader=response.body?.getReader();if(!reader)return invalid('missing_body');
     const decoder=new TextDecoder();let raw='',size=0;
-    try{while(true){const {done,value}=await reader.read();if(done)break;size+=value.byteLength;if(size>128*1024)return report('invalid_response',info);raw+=decoder.decode(value,{stream:true});}raw+=decoder.decode();}
+    try{while(true){const {done,value}=await reader.read();if(done)break;size+=value.byteLength;if(size>128*1024)return invalid('body_too_large',{bodyBytes:size});raw+=decoder.decode(value,{stream:true});}raw+=decoder.decode();}
     finally{await reader.cancel().catch(()=>{});}
-    let data;try{data=JSON.parse(raw);}catch{return report('invalid_response',info);}
+    info.bodyBytes=size;
+    let data;try{data=JSON.parse(raw);}catch{return invalid('invalid_json');}
+    if(!data||typeof data!=='object'||Array.isArray(data))return invalid('invalid_json_root');
     const errorTypes=Array.isArray(data.errors)?data.errors.map(error=>error?.type||error?.extensions?.code):[];
     if(errorTypes.some(type=>type==='NOT_FOUND'))return report('user_not_found',info);
     if(errorTypes.some(type=>['FORBIDDEN','INSUFFICIENT_SCOPES','UNAUTHORIZED'].includes(type)))return report('forbidden',info);
@@ -55,18 +59,26 @@ export async function diagnoseGithub({environment=process.env,fetcher=fetch,prof
     if(errorTypes.length)return report('upstream_error',info);
     const user=data.data?.user,calendar=user?.contributionsCollection?.contributionCalendar;
     if(user===null)return report('user_not_found',info);
-    if(typeof user?.login!=='string'||user.login.toLowerCase()!==username.toLowerCase()||!Number.isSafeInteger(calendar?.totalContributions)||calendar.totalContributions<0||!Array.isArray(calendar.weeks)||calendar.weeks.length>54)return report('invalid_response',info);
+    if(!user||typeof user!=='object')return invalid('missing_user',{hasData:Boolean(data.data)});
+    if(typeof user.login!=='string'||user.login.toLowerCase()!==username.toLowerCase())return invalid('login_mismatch');
+    if(!calendar||typeof calendar!=='object')return invalid('missing_calendar');
+    if(!Number.isSafeInteger(calendar.totalContributions)||calendar.totalContributions<0)return invalid('invalid_total',{totalType:typeof calendar.totalContributions});
+    if(!Array.isArray(calendar.weeks)||calendar.weeks.length>54)return invalid('invalid_weeks',{weeksIsArray:Array.isArray(calendar.weeks),...(Array.isArray(calendar.weeks)?{weekCount:calendar.weeks.length}:{})});
+    info.weekCount=calendar.weeks.length;
     const levels=['NONE','FIRST_QUARTILE','SECOND_QUARTILE','THIRD_QUARTILE','FOURTH_QUARTILE'];
     let previous=null,days=0;
     for(const week of calendar.weeks){
-      if(!Array.isArray(week?.contributionDays)||week.contributionDays.length>7)return report('invalid_response',info);
+      if(!Array.isArray(week?.contributionDays)||week.contributionDays.length>7)return invalid('invalid_week',{dayIndex:days});
       for(const day of week.contributionDays){
         const date=typeof day?.date==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(day.date)?Date.parse(`${day.date}T00:00:00Z`):NaN;
-        if(!Number.isFinite(date)||new Date(date).toISOString().slice(0,10)!==day.date||!Number.isInteger(day.contributionCount)||day.contributionCount<0||!levels.includes(day.contributionLevel)||(previous!==null&&date-previous!==86400000))return report('invalid_response',info);
+        if(!Number.isFinite(date)||new Date(date).toISOString().slice(0,10)!==day.date)return invalid('invalid_date',{dayIndex:days,dateType:typeof day?.date});
+        if(!Number.isInteger(day.contributionCount)||day.contributionCount<0)return invalid('invalid_count',{dayIndex:days,countType:typeof day.contributionCount});
+        if(!levels.includes(day.contributionLevel))return invalid('invalid_level',{dayIndex:days,levelType:typeof day.contributionLevel});
+        if(previous!==null&&date-previous!==86400000)return invalid('non_consecutive_dates',{dayIndex:days,previousDate:new Date(previous).toISOString().slice(0,10),date:day.date});
         previous=date;days++;
       }
     }
-    if(days<1||days>367)return report('invalid_response',info);
+    if(days<1||days>367)return invalid('invalid_day_count',{dayCount:days});
     return report('success',{...info,elapsedMs:Date.now()-start,days,totalContributions:calendar.totalContributions});
   }catch(error){
     const timeout=['AbortError','TimeoutError'].includes(error?.name)||['ETIMEDOUT','UND_ERR_CONNECT_TIMEOUT','UND_ERR_HEADERS_TIMEOUT','UND_ERR_BODY_TIMEOUT'].includes(error?.cause?.code);

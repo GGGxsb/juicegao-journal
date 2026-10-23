@@ -21,8 +21,10 @@ safe(await run(async()=>new Response(token,{status:502})),'upstream_error');
 for(const [type,code] of [['NOT_FOUND','user_not_found'],['INSUFFICIENT_SCOPES','forbidden'],['RATE_LIMITED','rate_limited'],['OTHER','upstream_error']])safe(await run(async()=>Response.json({errors:[{type,message:token}]})),code);
 safe(await run(async()=>{throw new DOMException(token,'TimeoutError');}),'timeout');
 const reset=safe(await run(async()=>{throw new Error(token,{cause:{code:'ECONNRESET',message:token}});}),'network_error');assert.equal(reset.networkCode,'ECONNRESET');
-safe(await run(async()=>new Response(JSON.stringify({secret:token}))),'invalid_response');
-safe(await run(async()=>new Response('x'.repeat(140*1024))),'invalid_response');
+assert.equal(safe(await run(async()=>new Response(JSON.stringify({secret:token}))),'invalid_response').reason,'missing_user');
+assert.equal(safe(await run(async()=>new Response('x'.repeat(140*1024))),'invalid_response').reason,'body_too_large');
+assert.equal(safe(await run(async()=>new Response(`<html>${token}</html>`,{headers:{'content-type':'text/html'}})),'invalid_response').reason,'invalid_json');
+assert.equal(safe(await run(async()=>Response.json(null)),'invalid_response').reason,'invalid_json_root');
 console.log('PASS configuration, authentication, permission, rate limit, timeout, network and malformed-data failures remain distinct without exposing credentials or raw upstream errors');
 
 let calls=0;
