@@ -1,14 +1,11 @@
-import type { Metadata } from "next";
+import { pageMetadata } from './lib/seo';
+import SiteMotion from './components/site-motion';
 import "./globals.css";
+import './components/site-motion.css';
 
-export const metadata: Metadata = {
-  title: { default: "JuiceGao's Blog", template: "%s · JuiceGao" },
-  description: "JuiceGao 的个人网站。",
-  icons: {
-    icon: "/favicon.svg",
-    shortcut: "/favicon.svg",
-  },
-};
+export async function generateMetadata() {
+  return { ...await pageMetadata('/'), icons: { icon: '/favicon.svg', shortcut: '/favicon.svg' } };
+}
 
 export default function RootLayout({
   children,
@@ -17,7 +14,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="zh-CN" suppressHydrationWarning>
-      <body className="antialiased">{children}</body>
+      <body className="antialiased">{children}<SiteMotion/></body>
     </html>
   );
 }

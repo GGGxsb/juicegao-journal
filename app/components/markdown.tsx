@@ -3,6 +3,7 @@ import rehypeKatex from 'rehype-katex';
 import type { Element, RootContent } from 'hast';
 import { markdownRemarkPlugins, safeMarkdownUrl } from './markdown-model';
 import MarkdownCode from './markdown-code';
+import ArticleComponent from './article-components';
 import 'katex/dist/katex.min.css';
 import './markdown.css';
 
@@ -14,6 +15,12 @@ function codeText(node: Element | RootContent): string {
 }
 
 const components: Components = {
+  div({node,children,...props}) {
+    const property=(key:string)=>String(node?.properties?.[key]??'');
+    const kind=property('data-article-kind');
+    if(!kind)return <div {...props}>{children}</div>;
+    return <ArticleComponent kind={kind} title={property('data-article-title')} repo={property('data-article-repo')} description={property('data-article-description')} initialOpen={property('data-article-open')==='true'}>{children}</ArticleComponent>;
+  },
   a({ node: _node, href, children, ...props }) {
     if (!href) return <span>{children}</span>;
     const external = /^https?:/i.test(href);

@@ -1,0 +1,27 @@
+@keyframes site-enter{from{opacity:.3;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+@keyframes surface-enter{from{opacity:0;transform:translateY(-6px) scale(.98)}to{opacity:1;transform:translateY(0) scale(1)}}
+@keyframes reader-zoom-enter{from{opacity:0;transform:scale(.94)}to{opacity:1;transform:scale(1)}}
+.journal>main{animation:site-enter .6s cubic-bezier(.2,.8,.2,1) both}
+.journal .site-name,.journal .main-nav>a,.journal .profile-avatar,.journal .post-cover,.journal .post-summary h2,.journal .tag-directory>a,.journal .collection-directory>a,.journal .article-neighbors>a{transition:transform .3s cubic-bezier(.2,.8,.2,1),color .2s,border-color .25s,box-shadow .3s}
+.journal .post-cover{will-change:auto}
+.journal .post-item>a:hover .post-cover{transform:scale(1.035);box-shadow:0 10px 26px #243e5515}
+.journal .post-item>a:hover .post-summary h2{transform:translateX(4px)}
+.journal .profile-avatar:hover{transform:rotate(-2deg) translateY(-3px);box-shadow:0 12px 30px #659eb922}
+.journal .tag-directory>a:hover,.journal .collection-directory>a:hover{transform:translateY(-4px);box-shadow:0 12px 28px #31465712}
+.journal .article-neighbors>a:hover{transform:translateY(-3px)}
+.journal .main-nav>a{position:relative}
+.journal .main-nav>a:after{content:'';position:absolute;left:0;right:0;bottom:-6px;height:2px;border-radius:2px;background:var(--accent);transform:scaleX(0);transform-origin:left;transition:transform .25s}
+.journal .main-nav>a:hover:after,.journal .main-nav>a.active:after{transform:scaleX(1)}
+.journal .blog-menu[open] .blog-dropdown{animation:surface-enter .22s cubic-bezier(.2,.8,.2,1) both;transform-origin:top left}
+.journal .search-dialog,.reader-dialog[open]{animation:surface-enter .26s cubic-bezier(.2,.8,.2,1) both}
+.reader-dialog.reader-image-dialog[open]{animation:none}
+.reader-image-dialog[open] .reader-image-dismiss{animation:reader-zoom-enter .3s cubic-bezier(.2,.8,.2,1) both}
+.journal button:active:not(:disabled){transform:scale(.96)}
+@view-transition{navigation:auto}
+::view-transition-old(root){animation-duration:.16s}
+::view-transition-new(root){animation-duration:.24s}
+@media(prefers-reduced-motion:reduce){
+ .journal>main,.journal .blog-dropdown,.journal .search-dialog,.reader-dialog[open],.reader-image-dialog[open] .reader-image-dismiss{animation:none!important}
+ .journal a,.journal img,.journal button,.journal .profile-avatar,.journal .post-summary h2,.journal .main-nav>a:after{transition:none!important;transform:none!important}
+ ::view-transition-group(*),::view-transition-old(*),::view-transition-new(*){animation:none!important}
+}

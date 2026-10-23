@@ -1,4 +1,10 @@
 import { notFound } from 'next/navigation';
+import { listingMetadata } from '../../lib/seo';
+import { tagHref } from '../../lib/post-links';
+export async function generateMetadata({params,searchParams}: {params:Promise<{tag:string}>;searchParams:NavigationSearchParams}) {
+  const tag=decodeRouteSegment((await params).tag);
+  return listingMetadata(tagHref(tag), `标签：${tag}`,searchParams);
+}
 import Journal from '../../components/site';
 import { TopicPostsContent } from '../../components/navigation-pages';
 import { ApiError, getSettings, queryPosts } from '../../lib/server';

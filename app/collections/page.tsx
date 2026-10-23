@@ -1,4 +1,6 @@
 import Journal from '../components/site';
+import { listingMetadata } from '../lib/seo';
+export const generateMetadata = ({searchParams}:{searchParams:NavigationSearchParams}) => listingMetadata('/collections', '系列合集',searchParams);
 import { CollectionsContent } from '../components/navigation-pages';
 import { getPostOverview, getSettings } from '../lib/server';
 import { queryCollections } from '../lib/navigation';

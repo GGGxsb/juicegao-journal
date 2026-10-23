@@ -1,4 +1,10 @@
 import { notFound } from 'next/navigation';
+import { listingMetadata } from '../../lib/seo';
+export async function generateMetadata({params,searchParams}: {params:Promise<{id:string}>;searchParams:NavigationSearchParams}) {
+  const collection=await getPublishedCollection((await params).id);
+  if(!collection)return {title:'合集不存在',robots:{index:false,follow:false}};
+  return listingMetadata(`/collections/${collection.id}`,collection.title,searchParams,collection.description);
+}
 import Journal from '../../components/site';
 import { TopicPostsContent } from '../../components/navigation-pages';
 import { getSettings, queryPosts } from '../../lib/server';

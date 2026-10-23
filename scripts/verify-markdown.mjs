@@ -4,6 +4,7 @@ import { registerHooks } from 'node:module';
 import { register } from 'tsx/esm/api';
 import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
+import { readFileSync } from 'node:fs';
 
 const styles = registerHooks({
   load(url, context, nextLoad) {
@@ -39,6 +40,15 @@ try {
   assert.match(gfm, /href="https:\/\/example\.com"[^>]*target="_blank"[^>]*rel="noopener noreferrer"/);
   assert.ok(render('第一行\n第二行').includes('<br/>'), 'Existing authored line breaks must be retained.');
   passed('GFM tables, nested and task lists, strikethrough, autolinks, footnotes and existing line breaks render');
+
+  const componentsSource=readFileSync(new URL('./fixtures/components.md',import.meta.url),'utf8');
+  const rich=render(componentsSource);
+  for(const fragment of ['rich-callout','rich-disclosure','aria-expanded="false"','role="tablist"','role="tabpanel"','rich-steps','rich-step','rich-gallery','<figcaption>日落与远山</figcaption>','https://github.com/Axi404/Axi-Theme'])assert.ok(rich.includes(fragment),fragment);
+  assert.deepEqual(getMarkdownHeadings(componentsSource).map(heading=>heading.text),['丰富的文章表达','继续记录'],'Hidden panel headings must not create unreachable TOC entries.');
+  const hostileComponent=render(':::note{title="安全标题" onclick="alert(1)" style="color:red"}\n正常内容。\n:::\n\n::github{repo="../../private"}\n\n行内 :note[文字]。');
+  assert.doesNotMatch(hostileComponent, /onclick=|onClick=|color:red|github\.com\/\.\./);
+  assert.ok(!hostileComponent.includes('<p>行内 <div'), 'Inline directives must never introduce invalid block nesting.');
+  passed('Article components render safely; hidden headings stay out of TOC and directive attributes cannot inject HTML');
 
   const math = render('行内 $E=mc^2$。\n\n$$\n\\int_0^1 x^2\\,dx=\\frac13\n$$');
   assert.match(math, /class="katex"/);

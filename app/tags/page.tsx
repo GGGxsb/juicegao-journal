@@ -1,4 +1,6 @@
 import Journal from '../components/site';
+import { listingMetadata } from '../lib/seo';
+export const generateMetadata = ({searchParams}:{searchParams:NavigationSearchParams}) => listingMetadata('/tags', '标签',searchParams);
 import { TagsContent } from '../components/navigation-pages';
 import { getPostOverview, getSettings } from '../lib/server';
 import { queryTags } from '../lib/navigation';
