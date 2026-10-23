@@ -4,7 +4,7 @@ import Journal from './site';
 import { getHomeOverview } from '../lib/home';
 
 export type PublicSearchParams = Promise<Record<string, string | string[] | undefined>>;
-type PublicView = 'home' | 'articles' | 'notes' | 'archive' | 'about';
+type PublicView = 'home' | 'articles' | 'about';
 
 export default async function PublicPage({ view, searchParams }: { view: PublicView; searchParams?: PublicSearchParams }) {
   if (view === 'home' || view === 'about') {
@@ -30,7 +30,7 @@ export default async function PublicPage({ view, searchParams }: { view: PublicV
   }
   const [settings, collection] = await Promise.all([
     getSettings(),
-    queryPosts({ ...options, ...(view === 'articles' ? { kind: 'article' } : view === 'notes' ? { kind: 'note' } : {}) }),
+    queryPosts(options),
   ]);
   return <Journal settings={settings} view={view} {...collection} selectedCategory={options.category ?? '全部'} selectedTag={options.tag ?? ''} searchQuery={options.q ?? ''} />;
 }

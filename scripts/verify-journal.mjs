@@ -97,7 +97,7 @@ const draftPayload = {
   title: `中文草稿-${runId}`,
   excerpt: "Disposable local integration verification content.",
   content: `## Verification\n\n${runId} body marker.\n\n**Markdown** remains readable.`,
-  category: "Technical", tags: ["local-qa"], kind: "article", status: "draft", coverImage: "",
+  category: "Technical", tags: ["local-qa"], status: "draft", coverImage: "",
 };
 
 try {
@@ -227,14 +227,14 @@ try {
   for (const title of [draftPayload.title, publishedPayload.title, renamedPayload.title]) {
     assert.equal((await request(`/posts/${encodeURIComponent(title)}`)).status, 404, "Previous and current title paths must not resolve.");
   }
-  for (const path of [`/articles?q=${runId}`, `/archive?q=${runId}`]) {
+  for (const path of [`/articles?q=${runId}`]) {
     const listing = await request(path);
     assert.equal(listing.status, 200);
     const html = await listing.text();
     assert.ok(html.includes(`href="/posts/${draft.id}"`), "Public listings must link to the immutable post ID.");
     assert.ok(!html.includes(`href="/posts/${encodeURIComponent(renamedPayload.title)}"`), "Public listing links must not depend on the title.");
   }
-  passed("ID links survive title edits across article lists and archives while title routes stay unavailable");
+  passed("ID links survive title edits across article lists while title routes stay unavailable");
 
   // The development framework may reject a hostile Origin before the API runs,
   // with its own plain-text response. The security contract is the 403 status.
@@ -248,15 +248,13 @@ try {
   assert.equal((await request(`/posts/${draft.id}`)).status, 404);
   passed("returning a post to draft removes it from public lists and article URLs");
 
-  const note = await readJson(await request("/api/posts", {
-    authenticated: true, method: "POST",
-    json: { ...publishedPayload, title: `${runId} note`, kind: "note" },
-  }), 201, "publish note");
-  disposableIds.add(note.post.id);
-  const notes = await readJson(await request("/api/posts?kind=note"), 200, "note filter");
-  assert.ok(notes.posts.some((post) => post.id === note.post.id));
-  assert.ok(notes.posts.every((post) => post.kind === "note" && post.status === "published"));
-  passed("published notes persist and support kind filtering");
+  await readJson(await request("/api/posts?kind=note"), 400, "retired post kind filter");
+  await readJson(await request("/api/posts", {
+    authenticated: true, method: "POST", json: { ...publishedPayload, kind: "note" },
+  }), 400, "retired post kind field");
+  const ordinary = (await readJson(await request("/api/posts"), 200, "unified articles")).posts;
+  assert.ok(ordinary.every(post => !Object.hasOwn(post, "kind")));
+  passed("articles expose a single content model and reject retired kind settings");
 
   originalSettings = (await readJson(await request("/api/settings"), 200, "settings before modification")).settings;
   const newSettings = { ...originalSettings, bio: `Local verification ${runId}` };

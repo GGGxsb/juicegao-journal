@@ -54,11 +54,11 @@ export async function queryTags(options: Omit<NavigationQuery, "scope"> = {}): P
 export async function getArticleNavigation(post: Post): Promise<ArticleNavigation> {
   if (post.status !== "published") return { previous: null, next: null };
   const db = env.DB;
-  const values = [post.kind, post.category, post.publishedAt, post.id];
+  const values = [post.category, post.publishedAt, post.id];
   const [previous, next] = await Promise.all([
-    db.prepare(`SELECT id, title FROM posts WHERE status = 'published' AND kind = ? AND category = ?
+    db.prepare(`SELECT id, title FROM posts WHERE status = 'published' AND category = ?
       AND (published_at, id) < (?, ?) ORDER BY published_at DESC, id DESC LIMIT 1`).bind(...values).first<PostLink>(),
-    db.prepare(`SELECT id, title FROM posts WHERE status = 'published' AND kind = ? AND category = ?
+    db.prepare(`SELECT id, title FROM posts WHERE status = 'published' AND category = ?
       AND (published_at, id) > (?, ?) ORDER BY published_at, id LIMIT 1`).bind(...values).first<PostLink>(),
   ]);
   // SQLite rows must become ordinary objects before passing them to React.

@@ -3,7 +3,9 @@ const nextConfig: NextConfig = {
   output: 'standalone',
   poweredByHeader: false,
   async redirects() {
-    return [{ source: '/collections/:path*', destination: '/articles', permanent: true }];
+    return ['collections', 'notes', 'archive'].map(section => ({
+      source: `/${section}/:path*`, destination: '/articles', permanent: true,
+    }));
   },
   serverExternalPackages: ['node:sqlite'],
 };

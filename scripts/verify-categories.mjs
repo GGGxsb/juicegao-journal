@@ -20,7 +20,7 @@ async function json(response, status=200) {
   const text=await response.text(); assert.equal(response.status,status,text.slice(0,500)); return JSON.parse(text);
 }
 async function create(fields={}) {
-  const {post}=await json(await request('/api/posts','POST',{title:marker,content:'分类与标签测试正文',tags:[marker],kind:'article',status:'published',...fields},true),201);
+  const {post}=await json(await request('/api/posts','POST',{title:marker,content:'分类与标签测试正文',tags:[marker],status:'published',...fields},true),201);
   ids.push(post.id);return post;
 }
 try {
@@ -43,7 +43,7 @@ try {
   const ownerList=await json(await request(`/api/posts?scope=all&category=Technical&q=${marker}`, 'GET',undefined,true));
   assert.equal(ownerList.pagination.total,2);
   console.log('PASS API mutations reject arbitrary categories and the owner can filter published posts and drafts');
-  const payload={title:life.title,excerpt:life.excerpt,content:life.content,category:'Technical',tags:[marker,'只属于这篇文章'],kind:life.kind,status:life.status,coverImage:life.coverImage};
+  const payload={title:life.title,excerpt:life.excerpt,content:life.content,category:'Technical',tags:[marker,'只属于这篇文章'],status:life.status,coverImage:life.coverImage};
   const updated=await json(await request(`/api/posts/${life.id}`,'PUT',payload,true));
   assert.equal(updated.post.id,life.id);assert.deepEqual(updated.post.tags,payload.tags);
   assert.equal((await json(await request(`/api/posts?tag=${encodeURIComponent('只属于这篇文章')}`))).posts[0].id,life.id);

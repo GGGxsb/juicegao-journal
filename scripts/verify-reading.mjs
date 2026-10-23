@@ -35,7 +35,7 @@ async function html(route) {
 async function createPost(fields) {
   const result = await json(await request('/api/posts', { auth: true, method: 'POST', body: {
     title: `${runId} published`, content, excerpt: '用于本机验证阅读功能。', category: 'Daily Life',
-    tags: [runId], kind: 'article', status: 'published', coverImage: '', ...fields,
+    tags: [runId], status: 'published', coverImage: '', ...fields,
   } }), 201);
   postIds.add(result.post.id); return result.post;
 }
@@ -50,11 +50,11 @@ try {
   const first = await createPost({ title: `${runId} first article`, tags: [runId, 'JS'] });
   const last = await createPost({ title: `${runId} last article`, tags: [runId, 'JavaScript'] });
   const draft = await createPost({ title: `${runId} PRIVATE_DRAFT`, tags: [runId, `${runId}-private-tag`], status: 'draft' });
-  const note = await createPost({ title: `${runId} note`, kind: 'note', tags: [runId, 'JS', '.', '..'] });
+  const tagged = await createPost({ title: `${runId} tagged article`, category: 'Technical', tags: [runId, 'JS', '.', '..'] });
   await createPost({ title: `${runId} different category`, category: 'Technical', tags: [] });
   assert.equal((await request(`/posts/${draft.id}`)).status, 404);
 
-  for (const route of ['/collections', '/collections/legacy-id']) {
+  for (const route of ['/collections', '/collections/legacy-id', '/notes', '/archive']) {
     const response = await request(route);
     assert.equal(response.status, 308);
     assert.equal(new URL(response.headers.get('location'), base).pathname, '/articles');
@@ -65,7 +65,9 @@ try {
   assert.equal((await request('/api/posts?collectionId=22222222-2222-4222-8222-222222222222')).status, 400);
   assert.ok(!Object.hasOwn(middle, 'collectionId') && !Object.hasOwn(middle, 'collectionOrder'));
   assert.ok(!(await html('/articles')).includes('文章合集'));
-  assert.ok(!(await html('/sitemap.xml')).includes('/collections'));
+  const sitemap = await html('/sitemap.xml');
+  for (const path of ['/collections', '/notes', '/archive']) assert.ok(!sitemap.includes(path));
+  const home = await html('/'); assert.ok(!home.includes('生活随谈') && !home.includes('href="/notes"') && !home.includes('href="/archive"'));
   passed('removed collection pages redirect to articles, management endpoints are unavailable and public links are cleaned up');
 
   const ordered = [first, middle, last].sort((a, b) => a.publishedAt < b.publishedAt ? -1 : a.publishedAt > b.publishedAt ? 1 : a.id < b.id ? -1 : 1);
@@ -78,18 +80,18 @@ try {
     assert.ok(!markup.includes('article-series'));
   }
   const middleHtml = await html(`/posts/${middle.id}`);
-  passed('previous and next articles follow publication order within their category and type, skipping drafts');
+  passed('previous and next articles follow publication order within their category, skipping drafts');
 
   const exact = await json(await request(`/api/posts?tag=JS&q=${runId}&pageSize=50`));
-  assert.deepEqual(new Set(exact.posts.map(value => value.id)), new Set([first.id, middle.id, note.id]));
+  assert.deepEqual(new Set(exact.posts.map(value => value.id)), new Set([first.id, middle.id, tagged.id]));
   const special = await json(await request(`/api/posts?tag=${encodeURIComponent(specialTag)}`));
   assert.deepEqual(special.posts.map(value => value.id), [middle.id]);
   assert.ok((await html(`/tags/${encodeURIComponent(encodedTag)}`)).includes(middle.title), 'A literal percent escape in a tag must not be decoded twice.');
   const tagsHtml = await html('/tags');
   assert.ok(!tagsHtml.includes(`${runId}-private-tag`));
   for (const tag of ['.', '..']) {
-    assert.ok(tagsHtml.includes(`href="/archive?tag=${tag}"`), 'Dot-only tags must use a URL that browsers do not normalize away.');
-    assert.ok((await html(`/archive?tag=${tag}`)).includes(note.title));
+    assert.ok(tagsHtml.includes(`href="/articles?tag=${tag}"`), 'Dot-only tags must use a URL that browsers do not normalize away.');
+    assert.ok((await html(`/articles?tag=${tag}`)).includes(tagged.title));
   }
   const tagHtml = await html(`/tags/${encodeURIComponent(specialTag)}`);
   assert.ok(tagHtml.includes(middle.title));

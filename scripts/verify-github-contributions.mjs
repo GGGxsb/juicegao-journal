@@ -22,7 +22,7 @@ try{
   const original=db.prepare('SELECT * FROM posts').all();
   copyFileSync('drizzle/0010_github_contribution_cache.sql',path.join(migrations,'0010_github_contribution_cache.sql'));
   assert.deepEqual(migrateDatabase(migrations),{applied:1,total:11});assert.deepEqual(db.prepare('SELECT * FROM posts').all(),original);
-  assert.deepEqual(db.prepare('PRAGMA foreign_key_check').all(),[]);assert.equal(migrateDatabase().applied,0);
+  assert.deepEqual(db.prepare('PRAGMA foreign_key_check').all(),[]);migrateDatabase();assert.equal(migrateDatabase().applied,0);
   const {getGithubContributions,githubContributionConfig}=await import('../app/lib/github-contributions.ts');
   delete process.env.GITHUB_CONTRIBUTIONS_TOKEN;delete process.env.GITHUB_CONTRIBUTIONS_USERNAME;
   let calls=0;const unused=async()=>{calls++;throw new Error('Must not fetch');};
@@ -77,7 +77,7 @@ try{
   assert.equal(leap.cells.filter(cell=>cell.day).length,3);assert.equal(leap.cells.find(cell=>cell.day?.date==='2024-02-29').date,'2024-02-29');
   const long=contributionLayout([{date:'2024-06-01',count:0,level:0},{date:'2025-06-01',count:0,level:0}]);assert.equal(long.weeks,54);assert.equal(long.cells.at(-1).day,null);assert.deepEqual(contributionLayout([]).cells,[]);
   const {default:ActivityCalendars}=await import('../app/components/activity-calendars.tsx');
-  const home={today:'2026-10-24',activity:[{date:'2026-10-24',count:2}],notes:[],firstPublishedAt:null,lastUpdatedAt:null};
+  const home={today:'2026-10-24',activity:[{date:'2026-10-24',count:2}],firstPublishedAt:null,lastUpdatedAt:null};
   const writing=renderToStaticMarkup(createElement(ActivityCalendars,{home}));assert.ok(writing.includes('写作日历')&&writing.includes('发布 2 篇记录'));assert.ok(!writing.includes('calendar-tabs'));
   const configured=renderToStaticMarkup(createElement(ActivityCalendars,{home:{...home,github:{configured:true,username}}}));assert.ok(configured.includes('写作记录')&&configured.includes('GitHub 贡献')&&configured.includes('正在加载 GitHub 贡献'));assert.ok(!configured.includes(token));
   console.log('PASS UTC dates, leap days and 54-week ranges retain correct cells; unconfigured sites keep writing history and configured sites show a truthful loading state');

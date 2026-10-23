@@ -8,7 +8,7 @@ import { getAdminSession, requireAdmin, type AdminPrincipal } from "./admin-auth
 import { ApiError } from "./errors";
 import { DEFAULT_POST_CATEGORY, POST_CATEGORIES, type PostCategory } from "./post-categories";
 export { getAdminSession, requireAdmin, ApiError };
-import type { Post, PostCollection, PostInput, PostKind, PostStatus, SettingsInput, SiteSettings } from "./types";
+import type { Post, PostCollection, PostInput, PostStatus, SettingsInput, SiteSettings } from "./types";
 
 export const DEFAULT_SETTINGS: SiteSettings = {
   name: "JuiceGao",
@@ -42,7 +42,6 @@ export async function authorizeMutation(request: Request): Promise<AdminPrincipa
 
 export interface PostQueryOptions {
   scope?: "published" | "all";
-  kind?: PostKind;
   category?: PostCategory;
   tag?: string;
   q?: string;
@@ -53,7 +52,6 @@ export interface PostQueryOptions {
 
 const postQuerySchema = z.object({
   scope: z.enum(["published", "all"]).default("published"),
-  kind: z.enum(["article", "note"]).optional(),
   category: z.enum(POST_CATEGORIES).optional(),
   tag: z.string().trim().min(1).max(60).optional(),
   q: z.string().trim().max(200).optional(),
@@ -92,8 +90,6 @@ for (const character of whitespaceCharacters) {
 async function postOverview(scope: "published" | "all"): Promise<Pick<PostCollection, "stats" | "categories">> {
   const db = getDb();
   const [stats] = await db.select({
-      articles: sql<number>`coalesce(sum(case when ${posts.kind} = 'article' then 1 else 0 end), 0)`.mapWith(Number),
-      notes: sql<number>`coalesce(sum(case when ${posts.kind} = 'note' then 1 else 0 end), 0)`.mapWith(Number),
       words: sql<number>`coalesce(sum(length(${contentWithoutWhitespace})), 0)`.mapWith(Number),
       total: count(),
       published: sql<number>`coalesce(sum(case when ${posts.status} = 'published' then 1 else 0 end), 0)`.mapWith(Number),
@@ -115,7 +111,6 @@ export async function queryPosts(options: PostQueryOptions = {}): Promise<PostCo
   const conditions: SQL[] = [];
   if (value.scope === "published") conditions.push(eq(posts.status, "published"));
   if (value.status) conditions.push(eq(posts.status, value.status));
-  if (value.kind) conditions.push(eq(posts.kind, value.kind));
   if (value.category) conditions.push(eq(posts.category, value.category));
   if (value.tag) conditions.push(sql`exists (select 1 from json_each(${posts.tags}) where json_each.type = 'text' and json_each.value = ${value.tag})`);
   if (value.q) {
@@ -143,11 +138,6 @@ export async function queryPosts(options: PostQueryOptions = {}): Promise<PostCo
     .orderBy(...ordering)
     .limit(value.pageSize).offset((page - 1) * value.pageSize);
   return { posts: pagePosts, pagination: { page, pageSize: value.pageSize, total, totalPages }, ...overview };
-}
-
-/** @deprecated Use queryPosts so callers can navigate all results. */
-export async function listPosts(options: { scope?: "published" | "all"; kind?: PostKind; limit?: number } = {}): Promise<Post[]> {
-  return (await queryPosts({ scope: options.scope, kind: options.kind, pageSize: options.limit ?? 10 })).posts;
 }
 
 /** Public detail URLs resolve exclusively through the persisted SQL primary key. */
@@ -184,7 +174,6 @@ const postSchema = z.object({
   category: z.enum(POST_CATEGORIES).default(DEFAULT_POST_CATEGORY),
   // A migrated legacy category can add one 60-character tag to the old 20.
   tags: z.array(z.string().trim().min(1).max(60)).max(32).default([]),
-  kind: z.enum(["article", "note"]).default("article"),
   status: z.enum(["draft", "published"]).default("draft"),
   coverImage: imageUrlSchema.default(""),
 }).strict();

@@ -78,6 +78,13 @@
       "when": 1792771200000,
       "tag": "0010_github_contribution_cache",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "6",
+      "when": 1792782000000,
+      "tag": "0011_remove_post_kinds",
+      "breakpoints": true
     }
   ]
 }

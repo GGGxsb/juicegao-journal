@@ -44,15 +44,20 @@ try{
   assert.equal(migrateDatabase(migrations).applied,0);assert.equal(rows('writing_drafts')[0].revision,123);
   console.log('PASS collection removal preserves published articles, drafts, comments, replies, likes, accounts and backup revisions; repeat startup is safe');
 
+  // Exercise today's editor against the complete schema after checking this
+  // historical migration in isolation. Later migrations also retire post kinds.
+  migrateDatabase();db.close();open();
+  const currentEditor=({kind,...value})=>strip(value);
+
   const storage=new Map();globalThis.localStorage={getItem:key=>storage.get(key)??null,setItem:(key,value)=>storage.set(key,value),removeItem:key=>storage.delete(key)};
   const {backupKey,readBackup}=await import('../app/admin/draft-backup.ts');
   const backup={key:post,editor,baseUpdatedAt:now,revision:123,updatedAt:now};
-  storage.set(backupKey('owner',post),JSON.stringify(backup));assert.deepEqual(readBackup('owner',post),{...backup,editor:strip(editor)});
+  storage.set(backupKey('owner',post),JSON.stringify(backup));assert.deepEqual(readBackup('owner',post),{...backup,editor:currentEditor(editor)});
   const {editorValueSchema}=await import('../app/lib/draft-state.ts');
   assert.ok(!editorValueSchema.safeParse({...editor,injected:'unexpected'}).success,'Obsolete-field compatibility must retain strict validation');
   const {getWritingDraft,saveWritingDraft}=await import('../app/lib/writing-drafts.ts');
-  assert.deepEqual((await getWritingDraft(owner,post)).editor,strip(editor));
-  const updated=await saveWritingDraft(owner,post,{editor,baseUpdatedAt:now,revision:123});assert.equal(updated.revision,124);assert.deepEqual(updated.editor,strip(editor));
+  assert.deepEqual((await getWritingDraft(owner,post)).editor,currentEditor(editor));
+  const updated=await saveWritingDraft(owner,post,{editor,baseUpdatedAt:now,revision:123});assert.equal(updated.revision,124);assert.deepEqual(updated.editor,currentEditor(editor));
   db.prepare('DELETE FROM posts WHERE id=?').run(post);assert.equal(rows('comments').length,0);assert.equal(rows('post_likes').length,0);assert.equal(rows('writing_drafts').length,1);assertRemoved();
   console.log('PASS legacy local backups recover and old autosave payloads remain usable; article deletion still cascades correctly');
 

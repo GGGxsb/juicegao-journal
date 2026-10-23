@@ -14,11 +14,11 @@ try{
   for(const name of readdirSync('drizzle').filter(name=>/^000[0-6]_.*\.sql$/.test(name)))copyFileSync(path.join('drizzle',name),path.join(older,name));
   assert.equal(migrateDatabase(older).applied,7);db=new DatabaseSync(path.join(process.env.DATA_DIR,'journal.sqlite'));db.exec('PRAGMA foreign_keys=ON');
   const legacyId=randomUUID();db.prepare('INSERT INTO posts(id,title,slug,content,category,tags,created_at,updated_at)VALUES(?,?,?,?,?,?,?,?)').run(legacyId,'升级前文章',legacyId,'保留原正文','Technical','["原标签"]','2026-01-01','2026-01-01');
-  const originalPosts=db.prepare('SELECT * FROM posts').all();assert.ok(migrateDatabase().applied>=1);db.close();db=new DatabaseSync(path.join(process.env.DATA_DIR,'journal.sqlite'));db.exec('PRAGMA foreign_keys=ON');assert.deepEqual(db.prepare('SELECT * FROM posts').all().map(row=>({...row})),originalPosts.map(({collection_id,collection_order,...row})=>row));
+  const originalPosts=db.prepare('SELECT * FROM posts').all();assert.ok(migrateDatabase().applied>=1);db.close();db=new DatabaseSync(path.join(process.env.DATA_DIR,'journal.sqlite'));db.exec('PRAGMA foreign_keys=ON');assert.deepEqual(db.prepare('SELECT * FROM posts').all().map(row=>({...row})),originalPosts.map(({collection_id,collection_order,kind,...row})=>row));
   console.log('PASS upgrading the existing database creates the backup table without changing original articles');
   for(const owner of ['writer-a','writer-b'])db.prepare('INSERT INTO admin_accounts(id,username,password_hash,created_at,updated_at)VALUES(?,?,?,?,?)').run(owner,owner,'unused-test-hash',Date.now(),Date.now());
   const {saveWritingDraft,getWritingDraft,listWritingDrafts,deleteWritingDraft}=await import('../app/lib/writing-drafts.ts');
-  const editor={id:'',title:'',excerpt:'',content:'## 尚未发布\n\n未完成的正文',category:'Daily Life',tags:['标记',''],kind:'article',status:'draft',coverImage:''};
+  const editor={id:'',title:'',excerpt:'',content:'## 尚未发布\n\n未完成的正文',category:'Daily Life',tags:['标记',''],status:'draft',coverImage:''};
   const draft=await saveWritingDraft('writer-a','new',{editor,revision:0,baseUpdatedAt:''});assert.ok(draft.revision>0);assert.deepEqual(draft.editor,editor);
   assert.equal(await getWritingDraft('writer-b','new'),null);assert.deepEqual(await listWritingDrafts('writer-b'),[]);
   await assert.rejects(saveWritingDraft('writer-a','new',{editor:{...editor,title:'stale tab'},revision:0,baseUpdatedAt:''}),error=>error.status===409);

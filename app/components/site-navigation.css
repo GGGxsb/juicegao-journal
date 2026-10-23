@@ -1,10 +1,10 @@
 .blog-dropdown a[aria-current=page]{color:var(--accent);background:var(--soft)}
 .listing-tools{display:flex;align-items:center;justify-content:space-between;gap:16px;margin:0 0 18px;color:var(--muted);font-size:13px}
-.listing-tools nav{display:flex;gap:18px}
-.tag-filter-label{display:inline-flex;gap:8px;align-items:center;margin:0 0 14px;color:var(--muted);font-size:13px}
-.tag-filter-label a{color:var(--accent)}
+
+
+
 .article-tags a{max-width:100%;overflow-wrap:anywhere}
 .article-tags a:hover{color:var(--accent)}
 .article-main{min-width:0}
 [data-article-body]{scroll-margin-top:24px}
-@media(max-width:560px){.listing-tools{font-size:12px}.listing-tools nav{gap:14px}}
+@media(max-width:560px){.listing-tools{font-size:12px}}

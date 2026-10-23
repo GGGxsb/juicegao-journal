@@ -17,7 +17,7 @@ try{
   originalSettings=(await api('/api/settings')).settings;
   const name='JuiceGao 站主检查',avatar='/favicon.svg';
   await api('/api/settings',{method:'PUT',jar:owner,data:{...originalSettings,name,avatar}});settingsChanged=true;
-  const {post}=await api('/api/posts',{method:'POST',jar:owner,status:201,data:{title:'站主评论标识检查',excerpt:'站主与同名游客必须能够区分。',content:'用于站主评论与回复的本地检查。',category:'Daily Life',tags:[],kind:'article',status:'published',coverImage:''}});ids.push(post.id);const endpoint=`/api/posts/${post.id}/comments`;
+  const {post}=await api('/api/posts',{method:'POST',jar:owner,status:201,data:{title:'站主评论标识检查',excerpt:'站主与同名游客必须能够区分。',content:'用于站主评论与回复的本地检查。',category:'Daily Life',tags:[],status:'published',coverImage:''}});ids.push(post.id);const endpoint=`/api/posts/${post.id}/comments`;
   assert.equal((await api('/api/comment-auth/session')).owner,null);
   const ownSession=await api('/api/comment-auth/session',{jar:owner});assert.deepEqual(ownSession.owner,{nickname:name,avatar});assert.equal(ownSession.user,null);assert.deepEqual(Object.keys(ownSession.owner).sort(),['avatar','nickname']);
   await api(endpoint,{method:'POST',status:401,data:{identity:'owner',content:'未经验证的站主'}});

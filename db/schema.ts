@@ -22,7 +22,6 @@ export const posts = sqliteTable("posts", {
   content: text("content").notNull().default(""),
   category: text("category", { enum: POST_CATEGORIES }).notNull().default(DEFAULT_POST_CATEGORY),
   tags: text("tags", { mode: "json" }).$type<string[]>().notNull().default([]),
-  kind: text("kind", { enum: ["article", "note"] }).notNull().default("article"),
   status: text("status", { enum: ["draft", "published"] }).notNull().default("draft"),
   coverImage: text("cover_image").notNull().default(""),
   publishedAt: text("published_at").notNull().default(""),
@@ -32,7 +31,7 @@ export const posts = sqliteTable("posts", {
   check("posts_category_check", sql`${table.category} IN ('Daily Life', 'Technical')`),
   uniqueIndex("posts_slug_unique").on(table.slug),
   index("posts_status_published_idx").on(table.status, table.publishedAt),
-  index("posts_category_navigation_idx").on(table.kind, table.category, table.status, table.publishedAt, table.id),
+  index("posts_category_navigation_idx").on(table.category, table.status, table.publishedAt, table.id),
 ]);
 
 export const siteSettings = sqliteTable("site_settings", {

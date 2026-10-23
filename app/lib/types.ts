@@ -1,6 +1,5 @@
 import type { PostCategory } from "./post-categories";
 
-export type PostKind = "article" | "note";
 export type PostStatus = "draft" | "published";
 
 export interface Post {
@@ -10,7 +9,6 @@ export interface Post {
   content: string;
   category: PostCategory;
   tags: string[];
-  kind: PostKind;
   status: PostStatus;
   coverImage: string;
   publishedAt: string;
@@ -26,8 +24,6 @@ export interface Pagination {
 }
 
 export interface PostStatistics {
-  articles: number;
-  notes: number;
   words: number;
   total: number;
   published: number;
@@ -74,10 +70,9 @@ export interface HomeOverview {
   firstPublishedAt: string | null;
   lastUpdatedAt: string | null;
   activity: { date: string; count: number }[];
-  notes: Pick<Post, "id" | "title" | "excerpt" | "publishedAt">[];
 }
 
-export type PostInput = Pick<Post, "title" | "excerpt" | "content" | "category" | "tags" | "kind" | "status" | "coverImage">;
+export type PostInput = Pick<Post, "title" | "excerpt" | "content" | "category" | "tags" | "status" | "coverImage">;
 
 export interface TagSummary {
   tag: string;

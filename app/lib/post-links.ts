@@ -5,6 +5,6 @@ export function postHref(post: { id: string }): string {
 
 export function tagHref(tag: string): string {
   // Browsers normalize dot-only path segments before the request reaches Next.
-  if (tag === '.' || tag === '..') return `/archive?${new URLSearchParams({ tag })}`;
+  if (tag === '.' || tag === '..') return `/articles?${new URLSearchParams({ tag })}`;
   return `/tags/${encodeURIComponent(tag)}`;
 }
