@@ -39,6 +39,8 @@ sudo docker compose --env-file .env -f deploy/compose.nginx-https.yaml exec -T a
 
 输出会区分容器未收到配置、Token 无效或过期、权限被拒、用户名不存在、GitHub 限流、网络或 DNS 故障、请求超时，以及数据格式不符。只需提供该诊断输出，不要提供 `.env` 内容、完整容器环境或 Token。
 
+GitHub 的日历按周分组，53 个完整周可以包含 371 天；不能把返回格子的数量限制为一年 365／366 天。应用及诊断脚本允许最多 54 周、378 个连续日期，保留 GitHub 返回的边界日期。如果旧版诊断显示 `invalid_day_count` 和 `dayCount: 371`，请拉取最新代码并重建应用，Token 无需更换。
+
 编辑 `.env` 后，普通 `restart` 不会重新读取容器环境；执行原部署命令 `up -d --build`，或用 `up -d --force-recreate app` 重新创建应用容器。源码更新时使用前面的重建命令。失败结果会暂存一分钟，修正后等待一分钟再刷新。
 
 ## 更新和展示规则

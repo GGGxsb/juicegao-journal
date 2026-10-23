@@ -34,6 +34,11 @@ const good=async(url,options)=>{
 };
 const result=safe(await run(good),'success');assert.equal(result.days,2);assert.equal(result.totalContributions,3);assert.equal(calls,1);
 const profile=safe(await diagnoseGithub({environment:{GITHUB_CONTRIBUTIONS_TOKEN:token},profile:'https://github.com/GGGxsb/',fetcher:good}),'success');assert.equal(profile.username,username);
+const start=Date.parse('2025-10-19T00:00:00Z');
+const weeks=Array.from({length:54},(_,week)=>({contributionDays:Array.from({length:7},(_,weekday)=>({date:new Date(start+(week*7+weekday)*86400000).toISOString().slice(0,10),contributionCount:0,contributionLevel:'NONE'}))}));
+const full={data:{user:{login:username,contributionsCollection:{contributionCalendar:{totalContributions:0,weeks}}}}};
+assert.equal(safe(await run(async()=>Response.json(full)),'success').days,378);
+const disordered=structuredClone(full);disordered.data.user.contributionsCollection.contributionCalendar.weeks[1].contributionDays[0].date='2025-10-19';assert.equal(safe(await run(async()=>Response.json(disordered)),'invalid_response').reason,'non_consecutive_dates');
 const command=spawnSync(process.execPath,['--input-type=module'],{input:readFileSync(new URL('./diagnose-github-contributions.mjs',import.meta.url),'utf8'),encoding:'utf8',env:{...process.env,GITHUB_CONTRIBUTIONS_TOKEN:'',GITHUB_CONTRIBUTIONS_USERNAME:username}});
 assert.equal(command.status,1);safe(JSON.parse(command.stdout),'missing_token');assert.ok(!command.stderr.includes(token));
 console.log('PASS diagnostics use the exact fixed GitHub endpoint and configured account; the script also runs by piping into an existing container without rebuilding it');

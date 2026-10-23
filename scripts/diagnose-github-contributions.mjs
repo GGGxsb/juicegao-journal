@@ -78,7 +78,7 @@ export async function diagnoseGithub({environment=process.env,fetcher=fetch,prof
         previous=date;days++;
       }
     }
-    if(days<1||days>367)return invalid('invalid_day_count',{dayCount:days});
+    if(days<1||days>54*7)return invalid('invalid_day_count',{dayCount:days});
     return report('success',{...info,elapsedMs:Date.now()-start,days,totalContributions:calendar.totalContributions});
   }catch(error){
     const timeout=['AbortError','TimeoutError'].includes(error?.name)||['ETIMEDOUT','UND_ERR_CONNECT_TIMEOUT','UND_ERR_HEADERS_TIMEOUT','UND_ERR_BODY_TIMEOUT'].includes(error?.cause?.code);

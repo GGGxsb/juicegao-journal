@@ -11,17 +11,19 @@ const dateSchema = z.string().regex(/^\d{4}-\d{2}-\d{2}$/).refine(value => {
   return Number.isFinite(date.getTime()) && date.toISOString().slice(0, 10) === value;
 });
 const countSchema = z.number().int().min(0).max(2_147_483_647);
+// Calendar rows may include the boundary days of up to 54 complete weeks.
+const maxWeeks = 54, maxDays = maxWeeks * 7;
 const levels = ['NONE', 'FIRST_QUARTILE', 'SECOND_QUARTILE', 'THIRD_QUARTILE', 'FOURTH_QUARTILE'] as const;
 const responseSchema = z.object({
   data: z.object({ user: z.object({ login: z.string(), contributionsCollection: z.object({ contributionCalendar: z.object({
     totalContributions: countSchema,
     weeks: z.array(z.object({ contributionDays: z.array(z.object({
       date: dateSchema, contributionCount: countSchema, contributionLevel: z.enum(levels),
-    })).max(7) })).min(1).max(54),
+    })).max(7) })).min(1).max(maxWeeks),
   }) }) }) }),
   errors: z.array(z.unknown()).optional(),
 });
-const calendarSchema = z.object({ total: countSchema, days: z.array(z.object({ date: dateSchema, count: countSchema, level: z.number().int().min(0).max(4) })).min(1).max(367) });
+const calendarSchema = z.object({ total: countSchema, days: z.array(z.object({ date: dateSchema, count: countSchema, level: z.number().int().min(0).max(4) })).min(1).max(maxDays) });
 type Cached = { credential_hash: string; calendar: string | null; fetched_at: number; retry_after: number };
 
 export function githubContributionConfig(profile = ''): { username: string | null; configured: boolean } {

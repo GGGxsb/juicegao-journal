@@ -58,6 +58,19 @@ try{
   db.exec('DELETE FROM github_contribution_cache');assert.equal((await getGithubContributions('',success)).status,'ready');
   console.log('PASS failures retain the last successful calendar, failed requests back off, rotation isolates old data and malformed responses never become fake zero-contribution charts');
 
+  // A calendar is grouped into weeks, including boundary days outside the year.
+  // It must not reject a valid 53- or 54-week response after flattening it.
+  for(const weekCount of [53,54]){
+    const start=Date.parse('2025-10-19T00:00:00Z');
+    const weeks=Array.from({length:weekCount},(_,week)=>({contributionDays:Array.from({length:7},(_,weekday)=>({date:new Date(start+(week*7+weekday)*86400000).toISOString().slice(0,10),contributionCount:1,contributionLevel:'FIRST_QUARTILE'}))}));
+    const payload={data:{user:{login:username,contributionsCollection:{contributionCalendar:{totalContributions:weekCount*7,weeks}}}}};
+    db.exec('DELETE FROM github_contribution_cache');
+    const full=await getGithubContributions('',async()=>Response.json(payload));assert.equal(full.status,'ready');assert.equal(full.calendar.days.length,weekCount*7);
+    closeDatabase();assert.deepEqual(await getGithubContributions('',unused),full);
+    if(weekCount===54){db.exec('DELETE FROM github_contribution_cache');const tooMany={data:{user:{login:username,contributionsCollection:{contributionCalendar:{totalContributions:385,weeks:[...weeks,weeks[0]]}}}}};assert.equal((await getGithubContributions('',async()=>Response.json(tooMany))).status,'unavailable');}
+  }
+  console.log('PASS full 53- and 54-week calendars survive parsing and cache reload while oversized week collections remain rejected');
+
   const {contributionLayout}=await import('../app/lib/contribution-layout.ts');
   const layout=contributionLayout(result.calendar.days);assert.equal(layout.weeks,1);assert.equal(layout.cells.length,7);assert.ok(layout.cells.every(cell=>cell.day));
   const leap=contributionLayout([{date:'2024-02-28',count:0,level:0},{date:'2024-02-29',count:1,level:1},{date:'2024-03-01',count:2,level:2}]);
