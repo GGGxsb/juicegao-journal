@@ -1,8 +1,8 @@
 'use client';
 import { useEffect, useState } from 'react';
-import type { CommentProvider } from '../lib/comment-identity-types';
+import type { CommentLoginProvider } from '../lib/comment-identity-types';
 import './comment-login-settings.css';
-type Provider = { id: CommentProvider; name: string; configured: boolean; callbackUrl: string };
+type Provider = { id: CommentLoginProvider; name: string; configured: boolean; callbackUrl: string };
 export default function CommentLoginSettings() {
   const [providers, setProviders] = useState<Provider[]>([]), [error, setError] = useState(''), [notice, setNotice] = useState(''), [revision, setRevision] = useState(0);
   useEffect(() => {
@@ -18,7 +18,7 @@ export default function CommentLoginSettings() {
     {error ? <p role="alert">{error}<button type="button" className="admin-text-link" onClick={() => setRevision(value => value + 1)}>重试</button></p> : !providers.length ? <p role="status">正在读取配置…</p> : providers.map(provider => <div className="admin-comment-provider" key={provider.id}>
       <div><h3>{provider.name}</h3><span className={`admin-status ${provider.configured ? 'published' : 'draft'}`}>{provider.configured ? '已配置' : '未配置'}</span></div>
       <span>平台回调地址</span><div className="admin-oauth-callback"><code>{provider.callbackUrl}</code><button type="button" className="admin-text-link" onClick={() => void copy(provider.callbackUrl)}>复制</button></div>
-      <small>{provider.id === 'qq' ? 'QQ_OAUTH_APP_ID · QQ_OAUTH_APP_KEY' : 'GITHUB_OAUTH_CLIENT_ID · GITHUB_OAUTH_CLIENT_SECRET'}</small>
+      <small>QQ_OAUTH_APP_ID · QQ_OAUTH_APP_KEY</small>
     </div>)}{notice && <p role="status">{notice}</p>}
   </section>;
 }

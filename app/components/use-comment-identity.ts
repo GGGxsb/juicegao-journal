@@ -1,6 +1,6 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
-import type { CommentProvider, CommentSession } from '../lib/comment-identity-types';
+import type { CommentLoginProvider, CommentSession } from '../lib/comment-identity-types';
 
 type Compose = { nickname: string; content: string; reply: { id: string; nickname: string } | null };
 const storageKey = (postId: string) => `journal-comment-compose:v1:${postId}`;
@@ -34,7 +34,7 @@ export function useCommentIdentity(postId: string, compose: Compose, restore: (v
     }).catch(() => { if (active) { setError('登录身份暂时无法加载，可先使用游客评论。'); setSelected('guest'); } }).finally(() => { if (active) setLoading(false); });
     return () => { active = false; };
   }, [postId, revision]);
-  async function login(provider: CommentProvider) {
+  async function login(provider: CommentLoginProvider) {
     if (busy) return; setBusy(true); setError(''); setNotice('');
     try {
       try { sessionStorage.setItem(storageKey(postId), JSON.stringify(latest.current.compose)); }

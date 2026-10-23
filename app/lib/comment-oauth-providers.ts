@@ -1,33 +1,27 @@
 import { ApiError } from './errors';
-import { COMMENT_PROVIDERS, COMMENT_PROVIDER_NAMES, type CommentProvider } from './comment-identity-types';
+import { COMMENT_PROVIDERS, COMMENT_PROVIDER_NAMES, type CommentLoginProvider } from './comment-identity-types';
 
-export interface CommentOAuthConfig { id: CommentProvider; clientId: string; clientSecret: string }
+export interface CommentOAuthConfig { id: CommentLoginProvider; clientId: string; clientSecret: string }
 export interface ProviderProfile { subject: string; nickname: string; avatar: string }
-export function providerId(value: string): CommentProvider {
+export function providerId(value: string): CommentLoginProvider {
   if (!(COMMENT_PROVIDERS as readonly string[]).includes(value)) throw new ApiError(404, '暂不支持这种登录方式。');
-  return value as CommentProvider;
+  return value as CommentLoginProvider;
 }
-export function providerConfig(id: CommentProvider): CommentOAuthConfig | null {
-  const clientId = (id === 'qq' ? process.env.QQ_OAUTH_APP_ID : process.env.GITHUB_OAUTH_CLIENT_ID)?.trim() || '';
-  const clientSecret = (id === 'qq' ? process.env.QQ_OAUTH_APP_KEY : process.env.GITHUB_OAUTH_CLIENT_SECRET)?.trim() || '';
-  const validId = id === 'qq' ? /^\d{5,32}$/.test(clientId) : /^[A-Za-z0-9._-]{6,128}$/.test(clientId);
+export function providerConfig(id: CommentLoginProvider): CommentOAuthConfig | null {
+  const clientId = process.env.QQ_OAUTH_APP_ID?.trim() || '';
+  const clientSecret = process.env.QQ_OAUTH_APP_KEY?.trim() || '';
+  const validId = id === 'qq' && /^\d{5,32}$/.test(clientId);
   return validId && /^[A-Za-z0-9_-]{16,256}$/.test(clientSecret) ? { id, clientId, clientSecret } : null;
 }
 export function enabledCommentProviders() {
   return COMMENT_PROVIDERS.filter(id => providerConfig(id)).map(id => ({ id, name: COMMENT_PROVIDER_NAMES[id] }));
 }
-export function callbackPath(id: CommentProvider) { return `/api/comment-auth/${id}/callback`; }
-export function authorizationUrl(config: CommentOAuthConfig, redirectUri: string, state: string, challenge: string, mobile = false) {
-  const url = new URL(config.id === 'qq' ? 'https://graph.qq.com/oauth2.0/authorize' : 'https://github.com/login/oauth/authorize');
+export function callbackPath(id: CommentLoginProvider) { return `/api/comment-auth/${id}/callback`; }
+export function authorizationUrl(config: CommentOAuthConfig, redirectUri: string, state: string, mobile = false) {
+  const url = new URL('https://graph.qq.com/oauth2.0/authorize');
   url.searchParams.set('client_id', config.clientId); url.searchParams.set('redirect_uri', redirectUri); url.searchParams.set('state', state);
-  if (config.id === 'qq') {
-    url.searchParams.set('response_type', 'code'); url.searchParams.set('scope', 'get_user_info');
-    if (mobile) url.searchParams.set('display', 'mobile');
-  } else {
-    // Public profile only; no email, repository or organization permission is requested.
-    url.searchParams.set('scope', ''); url.searchParams.set('prompt', 'select_account');
-    url.searchParams.set('code_challenge', challenge); url.searchParams.set('code_challenge_method', 'S256');
-  }
+  url.searchParams.set('response_type', 'code'); url.searchParams.set('scope', 'get_user_info');
+  if (mobile) url.searchParams.set('display', 'mobile');
   return url.toString();
 }
 function nickname(value: unknown, fallback: string) {
@@ -57,19 +51,7 @@ function accessToken(value: unknown): string {
   if (typeof value !== 'string' || !/^[A-Za-z0-9._~-]{10,2048}$/.test(value)) throw new ApiError(502, '未能完成平台授权，请重新登录。');
   return value;
 }
-export async function exchangeCommentProfile(config: CommentOAuthConfig, code: string, redirectUri: string, verifier: string, fetcher: typeof fetch = fetch): Promise<ProviderProfile> {
-  if (config.id === 'github') {
-    const token = await remote('https://github.com/login/oauth/access_token', {
-      method: 'POST', headers: { Accept: 'application/json', 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: new URLSearchParams({ client_id: config.clientId, client_secret: config.clientSecret, code, redirect_uri: redirectUri, code_verifier: verifier }).toString(),
-    }, fetcher);
-    const profile = await remote('https://api.github.com/user', { headers: {
-      Authorization: `Bearer ${accessToken(token.access_token)}`, Accept: 'application/vnd.github+json',
-      'X-GitHub-Api-Version': '2022-11-28', 'User-Agent': 'JuiceGao-Comment-Login',
-    } }, fetcher);
-    if (!Number.isSafeInteger(profile.id) || Number(profile.id) < 1 || typeof profile.login !== 'string' || !/^[A-Za-z0-9-]{1,39}$/.test(profile.login)) throw new ApiError(502, '无法确认 GitHub 身份。');
-    return { subject: String(profile.id), nickname: nickname(profile.name, profile.login), avatar: `https://avatars.githubusercontent.com/u/${profile.id}?s=80&v=4` };
-  }
+export async function exchangeCommentProfile(config: CommentOAuthConfig, code: string, redirectUri: string, fetcher: typeof fetch = fetch): Promise<ProviderProfile> {
   const tokenUrl = new URL('https://graph.qq.com/oauth2.0/token');
   tokenUrl.search = new URLSearchParams({ grant_type: 'authorization_code', client_id: config.clientId, client_secret: config.clientSecret, code, redirect_uri: redirectUri, fmt: 'json' }).toString();
   const token = accessToken((await remote(tokenUrl, {}, fetcher)).access_token);

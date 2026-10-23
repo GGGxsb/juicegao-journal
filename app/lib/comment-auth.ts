@@ -5,7 +5,7 @@ import { ApiError } from './errors';
 import { requireSameOrigin } from './server';
 import { assertSafeLoginTransport, clientAddress, isLoopbackHost, requestOrigin } from './request-security';
 import { authorizationUrl, callbackPath, enabledCommentProviders, exchangeCommentProfile, providerConfig, providerId } from './comment-oauth-providers';
-import type { CommentIdentity, CommentProvider, CommentSession } from './comment-identity-types';
+import type { CommentIdentity, CommentSession } from './comment-identity-types';
 
 const SESSION_SECONDS = 7 * 24 * 60 * 60;
 const FLOW_SECONDS = 10 * 60;
@@ -13,7 +13,7 @@ const tokenPattern = /^[A-Za-z0-9_-]{43}$/;
 const digest = (value: string) => createHash('sha256').update(value).digest('hex');
 const token = () => randomBytes(32).toString('base64url');
 type Account = CommentIdentity & { id: string };
-type Attempt = { post_id: string; verifier: string };
+type Attempt = { post_id: string };
 function cookieName(request: Request, suffix: string) {
   const local = isLoopbackHost(new URL(requestOrigin(request)).host);
   return `${local ? 'journal_' : '__Host-journal_'}${suffix}`;
@@ -33,7 +33,7 @@ function cookie(request: Request, suffix: string, value: string, seconds: number
 export async function commentAccount(request: Request): Promise<Account | null> {
   const supplied = readCookie(request, 'comment_session'); if (!supplied) return null;
   return env.DB.prepare(`SELECT a.id, a.nickname, a.avatar, a.provider FROM comment_sessions s
-    JOIN comment_accounts a ON a.id=s.account_id WHERE s.token_hash=? AND s.expires_at>?`)
+    JOIN comment_accounts a ON a.id=s.account_id WHERE s.token_hash=? AND s.expires_at>? AND a.provider='qq'`)
     .bind(digest(supplied), Date.now()).first<Account>();
 }
 export async function commentSession(request: Request): Promise<CommentSession> {
@@ -60,17 +60,16 @@ export async function startCommentLogin(request: Request, provider: string, inpu
   const post = await env.DB.prepare("SELECT id FROM posts WHERE id=? AND status='published'").bind(parsed.data.postId).first();
   if (!post) throw new ApiError(404, '文章不存在或尚未发布。');
   await throttle(request);
-  const state = token(), browser = token(), verifier = token(), now = Date.now();
+  const state = token(), browser = token(), now = Date.now();
   await env.DB.batch([
     env.DB.prepare('DELETE FROM comment_oauth_attempts WHERE expires_at<=?').bind(now),
     env.DB.prepare('DELETE FROM comment_sessions WHERE expires_at<=?').bind(now),
     env.DB.prepare('INSERT INTO comment_oauth_attempts(state_hash,browser_hash,provider,post_id,verifier,expires_at) VALUES(?,?,?,?,?,?)')
-      .bind(digest(state), digest(browser), id, parsed.data.postId, verifier, now + FLOW_SECONDS * 1000),
+      .bind(digest(state), digest(browser), id, parsed.data.postId, '', now + FLOW_SECONDS * 1000),
   ]);
   const redirectUri = new URL(callbackPath(id), requestOrigin(request)).toString();
-  const challenge = createHash('sha256').update(verifier).digest('base64url');
   return {
-    url: authorizationUrl(config, redirectUri, state, challenge, /Mobile|Android|iPhone/i.test(request.headers.get('user-agent') || '')),
+    url: authorizationUrl(config, redirectUri, state, /Mobile|Android|iPhone/i.test(request.headers.get('user-agent') || '')),
     cookie: cookie(request, `oauth_${id}`, browser, FLOW_SECONDS),
   };
 }
@@ -90,14 +89,14 @@ export async function finishCommentLogin(request: Request, provider: string, fet
   const state = params.get('state') || '', browser = readCookie(request, `oauth_${id}`);
   if (params.getAll('state').length !== 1 || !tokenPattern.test(state) || !browser) return redirect(new URL('/comment-login', origin).toString());
   const attempt = await env.DB.prepare(`DELETE FROM comment_oauth_attempts WHERE state_hash=? AND browser_hash=?
-    AND provider=? AND expires_at>? RETURNING post_id,verifier`).bind(digest(state), digest(browser), id, Date.now()).first<Attempt>();
+    AND provider=? AND expires_at>? RETURNING post_id`).bind(digest(state), digest(browser), id, Date.now()).first<Attempt>();
   if (!attempt) return redirect(new URL('/comment-login', origin).toString());
   const clearFlow = cookie(request, `oauth_${id}`, '', 0);
   if (params.has('error')) return redirect(destination(request, attempt.post_id, params.get('error') === 'access_denied' ? 'cancelled' : 'failed'), [clearFlow]);
   const code = params.get('code') || '', config = providerConfig(id);
   if (!config || params.getAll('code').length !== 1 || !code || code.length > 2048 || /[\s\u0000-\u001f\u007f]/.test(code)) return redirect(destination(request, attempt.post_id, 'failed'), [clearFlow]);
   try {
-    const profile = await exchangeCommentProfile(config, code, new URL(callbackPath(id), origin).toString(), attempt.verifier, fetcher);
+    const profile = await exchangeCommentProfile(config, code, new URL(callbackPath(id), origin).toString(), fetcher);
     const stamp = new Date().toISOString(), sessionToken = token(), now = Date.now();
     const account = await env.DB.prepare(`INSERT INTO comment_accounts(id,provider,client_id,subject,nickname,avatar,created_at,updated_at)
       VALUES(?,?,?,?,?,?,?,?) ON CONFLICT(provider,client_id,subject) DO UPDATE SET nickname=excluded.nickname,avatar=excluded.avatar,updated_at=excluded.updated_at RETURNING id`)
