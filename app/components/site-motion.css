@@ -8,6 +8,7 @@
 .site-header-shell .site-name{min-width:0;overflow:hidden;text-overflow:ellipsis}
 .site-header-shell .main-nav{flex-shrink:0}
 .site-header-shell .header-actions{gap:18px}
+@media(min-width:561px){.site-header-shell .main-nav{margin-left:auto}.site-header-shell .header-actions{margin-left:0;flex-shrink:0}}
 .journal .blog-dropdown{border-radius:12px;backdrop-filter:blur(16px);background:color-mix(in srgb,var(--bg) 85%,transparent)}
 .journal .blog-menu>summary svg{transition:transform .2s ease-in-out}
 .journal .blog-menu[open]>summary svg{transform:rotate(180deg)}

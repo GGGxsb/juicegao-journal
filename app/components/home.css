@@ -7,12 +7,12 @@
 .home-section.home-statistics-section>h2{font-size:20px;line-height:28px;font-weight:600;margin:0}
 .home-statistics-section>.activity-calendars{grid-column:1/-1;min-width:0}
 .home-statistics{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:0;min-width:0}
-.home-statistics>div{position:relative;display:flex;flex-direction:column-reverse;gap:8px;align-items:flex-start;min-width:0;padding:16px 18px;border:1px solid var(--line);border-radius:12px;background:var(--bg);transition:background-color .2s,border-color .2s}
+.home-statistics>div{position:relative;display:flex;flex-direction:column-reverse;gap:8px;align-items:flex-start;min-width:0;padding:16px 18px;border:1px solid var(--line);border-radius:12px;background:var(--card);transition:background-color .2s,border-color .2s}
 .home-statistics dt{font-size:12px;color:var(--muted)}
 .home-statistics dd{max-width:100%;font-size:24px;line-height:32px;font-weight:600;margin:0;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
 .home-statistics dd.home-stat-date{font-size:16px;letter-spacing:-.3px;white-space:nowrap}
 .home-statistics>div:has(a){cursor:pointer}
-.home-statistics>div:has(a):is(:hover,:focus-within){background:color-mix(in srgb,var(--soft) 30%,var(--bg));border-color:color-mix(in srgb,var(--ink) 20%,var(--bg))}
+.home-statistics>div:has(a):is(:hover,:focus-within){background:color-mix(in srgb,var(--soft) 30%,var(--card));border-color:color-mix(in srgb,var(--ink) 20%,var(--card))}
 .home-statistics a::after{content:'';position:absolute;inset:0;border-radius:12px}
 .home-statistics a:focus-visible{outline:none}
 .home-statistics a:focus-visible::after{outline:2px solid var(--accent);outline-offset:4px}

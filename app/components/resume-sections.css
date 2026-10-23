@@ -11,14 +11,14 @@
   padding:16px 24px;
   border:1px solid var(--line);
   border-radius:12px;
-  background:var(--bg);
+  background:var(--card);
   overflow-wrap:anywhere;
   transition:background-color .2s,border-color .2s;
 }
 .resume-card:has(.resume-card-link){cursor:pointer}
 .resume-card:has(.resume-card-link):is(:hover,:focus-within){
-  background:color-mix(in srgb,var(--soft) 30%,var(--bg));
-  border-color:color-mix(in srgb,var(--ink) 20%,var(--bg));
+  background:color-mix(in srgb,var(--soft) 30%,var(--card));
+  border-color:color-mix(in srgb,var(--ink) 20%,var(--card));
 }
 .resume-card-heading{display:flex;flex-direction:column;gap:4px}
 .resume-organization{margin:0;font-size:18px;line-height:28px;font-weight:600;overflow-wrap:anywhere}
