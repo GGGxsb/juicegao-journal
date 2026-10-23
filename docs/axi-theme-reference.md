@@ -19,6 +19,8 @@
 | 图片组 | [ImageGroup.astro](https://github.com/Axi404/Axi-Theme/blob/c6470e7308bad839489932601e2be08f9b542e70/src/components/advanced/ImageGroup.astro) | 按图片宽高比分配宽度，同行等高、保留整张图片及 12px 间距 |
 | GitHub 卡片 | [GithubCard.astro](https://github.com/Axi404/Axi-Theme/blob/c6470e7308bad839489932601e2be08f9b542e70/src/components/advanced/GithubCard.astro) | 头像、owner/repo、简介、stars、forks、license、language |
 | 搜索与分享信息 | [BaseHead.astro](https://github.com/Axi404/Axi-Theme/blob/c6470e7308bad839489932601e2be08f9b542e70/src/components/BaseHead.astro) | 页面独立标题/摘要、canonical、Open Graph、Twitter 大图卡片及文章时间 |
+| 教育经历 | [首页](https://github.com/Axi404/Axi-Theme/blob/c6470e7308bad839489932601e2be08f9b542e70/src/pages/index.astro)、[Section.astro](https://github.com/Axi404/Axi-Theme/blob/c6470e7308bad839489932601e2be08f9b542e70/src/components/home/Section.astro)、[Card.astro](https://github.com/Axi404/Axi-Theme/blob/c6470e7308bad839489932601e2be08f9b542e70/src/components/user/Card.astro) | 桌面左标题、右卡片；12px 圆角、学校/机构、学位/专业与等宽时间；手机上下排列 |
+| 履历 | [Timeline.astro](https://github.com/Axi404/Axi-Theme/blob/c6470e7308bad839489932601e2be08f9b542e70/src/components/user/Timeline.astro) | 圆点与连接线、左日期右内容、悬停节点放大；手机日期改为内容上方小标签 |
 
 适配差异：本站保留 SQL 文章 ID 路由与后台 Markdown 写作，通过受限 directive 使用正文组件。点击粒子设有数量上限，跳过文本输入和后台；所有非必要动效尊重系统“减少动态效果”。标签页和折叠继续提供 ARIA 与键盘操作，GitHub API 失败时保留可访问的静态卡片。
 

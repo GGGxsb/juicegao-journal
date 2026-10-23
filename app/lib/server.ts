@@ -8,7 +8,7 @@ import { getAdminSession, requireAdmin, type AdminPrincipal } from "./admin-auth
 import { ApiError } from "./errors";
 import { DEFAULT_POST_CATEGORY, POST_CATEGORIES, type PostCategory } from "./post-categories";
 export { getAdminSession, requireAdmin, ApiError };
-import type { Post, PostCollection, PostInput, PostKind, PostStatus, SiteSettings } from "./types";
+import type { Post, PostCollection, PostInput, PostKind, PostStatus, SettingsInput, SiteSettings } from "./types";
 
 export const DEFAULT_SETTINGS: SiteSettings = {
   name: "JuiceGao",
@@ -19,6 +19,9 @@ export const DEFAULT_SETTINGS: SiteSettings = {
   email: "",
   location: "",
   education: "",
+  // Each read receives its own mutable array, including {...DEFAULT_SETTINGS}.
+  get educationEntries() { return []; },
+  get experienceEntries() { return []; },
   startedAt: "",
 };
 
@@ -193,6 +196,33 @@ const postSchema = z.object({
   collectionOrder: z.number().int().min(0).max(1_000_000).default(0),
 }).strict();
 
+function safeResumeUrl(value: string): boolean {
+  if (!value) return true;
+  if (/[\u0000-\u0020\u007f\\]/.test(value)) return false;
+  try {
+    const url = new URL(value);
+    return url.protocol === "https:" && Boolean(url.hostname) && !url.username && !url.password;
+  } catch { return false; }
+}
+
+const resumeEntrySchema = z.object({
+  id: z.string().uuid("履历条目 ID 无效，请重新创建该条目。"),
+  organization: z.string().trim().min(1, "请输入学校或机构名称。").max(160),
+  title: z.string().trim().max(160).default(""),
+  period: z.string().trim().max(80).default(""),
+  description: z.string().max(3000).default(""),
+  url: z.string().trim().max(2048).refine(safeResumeUrl, "条目链接必须为空或不含账号密码的 HTTPS 地址。").default(""),
+}).strict();
+
+const resumeEntriesSchema = z.array(resumeEntrySchema).max(20, "每组最多添加 20 个条目。").superRefine((entries, context) => {
+  const ids = new Set<string>();
+  entries.forEach((entry, index) => {
+    const id = entry.id.toLowerCase();
+    if (ids.has(id)) context.addIssue({ code: z.ZodIssueCode.custom, path: [index, "id"], message: "同一组中的条目 ID 不可重复。" });
+    ids.add(id);
+  });
+});
+
 const settingsSchema = z.object({
   name: z.string().trim().min(1, "请输入昵称。").max(80),
   bio: z.string().trim().max(300),
@@ -204,7 +234,10 @@ const settingsSchema = z.object({
   }, "GitHub 地址应为 https://github.com/ 开头的链接。"),
   email: z.union([z.literal(""), z.string().email("请输入有效邮箱。")]).transform((value) => value.trim()),
   location: z.string().trim().max(100),
-  education: z.string().trim().max(6000).default(""),
+  education: z.string().max(6000).default(""),
+  // Do not default these here: older clients must not erase saved resume groups.
+  educationEntries: resumeEntriesSchema.optional(),
+  experienceEntries: resumeEntriesSchema.optional(),
   startedAt: z.union([z.literal(""), z.string().regex(/^\d{4}-\d{2}-\d{2}$/).refine(value => {
     const parsed = new Date(`${value}T00:00:00.000Z`);
     return Number.isFinite(parsed.getTime()) && parsed.toISOString().slice(0, 10) === value && value <= new Intl.DateTimeFormat('en-CA', {timeZone:'Asia/Shanghai',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
@@ -222,7 +255,7 @@ export function validatePost(input: unknown): PostInput {
   return { ...value, tags: [...new Set(value.tags)] };
 }
 
-export function validateSettings(input: unknown): SiteSettings {
+export function validateSettings(input: unknown): SettingsInput {
   return parseInput(settingsSchema, input);
 }
 
@@ -263,11 +296,18 @@ export async function deletePost(id: string): Promise<void> {
   if (!deleted) throw new ApiError(404, "文章不存在或已删除。");
 }
 
-export async function saveSettings(input: SiteSettings): Promise<SiteSettings> {
+export async function saveSettings(input: SettingsInput): Promise<SiteSettings> {
+  const { educationEntries, experienceEntries, ...fields } = input;
   const updatedAt = new Date().toISOString();
-  await getDb().insert(siteSettings).values({ ...input, id: "site", updatedAt })
-    .onConflictDoUpdate({ target: siteSettings.id, set: { ...input, updatedAt } });
-  return input;
+  await getDb().insert(siteSettings).values({
+    ...fields, id: "site", updatedAt,
+    educationEntries: educationEntries ?? [], experienceEntries: experienceEntries ?? [],
+  }).onConflictDoUpdate({ target: siteSettings.id, set: {
+    ...fields, updatedAt,
+    ...(educationEntries !== undefined ? { educationEntries } : {}),
+    ...(experienceEntries !== undefined ? { experienceEntries } : {}),
+  } });
+  return getSettings();
 }
 
 export async function readBodyBytes(request: Request, maxBytes: number): Promise<ArrayBuffer> {

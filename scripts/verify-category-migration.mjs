@@ -88,7 +88,8 @@ try {
     beforePosts.push({ row: { ...database.prepare('SELECT rowid AS stableRowId,* FROM posts WHERE id=?').get(id) }, expectedCategory, append });
   }
   const before = { comments: rows('comments'), likes: rows('post_likes'), collections: rows('collections'), journal: rows('__journal_migrations') };
-  const upgrade = migrateDatabase();
+  copyFileSync('drizzle/0005_post_categories.sql', path.join(legacy, '0005_post_categories.sql'));
+  const upgrade = migrateDatabase(legacy);
   assert.deepEqual(upgrade, { applied: 1, total: 6 });
   for (const { row, expectedCategory, append } of beforePosts) {
     const after = database.prepare('SELECT rowid AS stableRowId,* FROM posts WHERE id=?').get(row.id);
@@ -105,7 +106,7 @@ try {
   assert.deepEqual(rows('__journal_migrations').slice(0, 5), before.journal, 'Old migration hashes and timestamps must not change.');
   assert.equal(rows('__journal_migrations').at(-1).name, '0005_post_categories.sql');
   const afterPosts = rows('posts');
-  assert.equal(migrateDatabase().applied, 0, 'Repeated startup must skip the journaled migration.');
+  assert.equal(migrateDatabase(legacy).applied, 0, 'Repeated startup must skip the journaled migration.');
   assert.deepEqual(rows('posts'), afterPosts, 'Repeated startup must not duplicate legacy-category tags.');
   verifySqlCategoryContract();
   // Relationships remain operational, including their original delete behavior.
@@ -120,7 +121,7 @@ try {
   console.log('PASS legacy category mapping preserves IDs, original tags, bodies, comments, likes, collections and row IDs; startup is idempotent.');
   database.close(); database = undefined;
   connect('fresh');
-  assert.equal(migrateDatabase().applied, 6);
+  assert.equal(migrateDatabase(legacy).applied, 6);
   database = new DatabaseSync(path.join(process.env.DATA_DIR, 'journal.sqlite'));
   database.exec('PRAGMA foreign_keys=ON');
   verifySqlCategoryContract();

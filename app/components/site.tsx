@@ -6,6 +6,7 @@ import {Markdown,getMarkdownHeadings} from './markdown';
 import {PageNavigation} from './pagination';
 import ArticleFeedback from './article-feedback';
 import HomeContent from './home-content';
+import ResumeSections from './resume-sections';
 import PostList from './post-list';
 import ArticleReader from './article-reader';
 import { ArticleNavigation } from './article-navigation';
@@ -54,7 +55,7 @@ export default function Journal({settings,posts,view,article,pagination,stats,se
       {view==='home'&&<>{profile}<HomeContent settings={settings} bio={bio} description={description} stats={stats} home={home}/></>}
       {(view==='articles'||view==='notes')&&<section className="listing-page"><h1>{view==='articles'?(selectedCategory==='全部'?'博客':selectedCategory):'随记'}</h1>{view==='articles'&&<nav className="category-tabs" aria-label="分类">{['全部',...POST_CATEGORIES].map(category=><a key={category} className={category===selectedCategory?'selected':''} href={categoryHref(category)} aria-current={category===selectedCategory?'page':undefined}>{category}</a>)}</nav>}<div className="listing-tools"><span>{selectedTag?`标签：${selectedTag}`:"按主题浏览记录"}</span><nav aria-label="内容导航"><a href="/collections">文章合集</a></nav></div>{count}{postList}{pageNavigation}</section>}
       {view==='archive'&&<section className="listing-page archive-page"><h1>归档</h1>{selectedTag&&<p className="tag-filter-label">标签：{selectedTag}<a href="/tags">所有标签</a></p>}{count}{years.length?years.map(year=><section key={year} className="archive-year"><h2>{year}</h2>{posts.filter(post=>new Date(post.publishedAt).getFullYear()===year).map(post=><a href={postHref(post)} key={post.id}><time>{formatDate(post.publishedAt).slice(5)}</time><span>{post.title}</span></a>)}</section>):<p className="empty-state">暂无内容</p>}{pageNavigation}</section>}
-      {view==='about'&&<section className="about-page">{profile}<div className="about-content"><h2>关于我</h2><p>{bio||'学习经历，生活随谈。'}</p>{description&&<div className="home-copy"><Markdown content={description}/></div>}{settings.education?.trim()&&<><h2>学习经历</h2><div className="home-copy"><Markdown content={settings.education}/></div></>}</div></section>}
+      {view==='about'&&<section className="about-page">{profile}<div className="about-content"><h2>关于我</h2><p>{bio||'学习经历，生活随谈。'}</p>{description&&<div className="home-copy"><Markdown content={description}/></div>}<ResumeSections settings={settings}/></div></section>}
       {(view==='tags'||view==='collections')&&children}
       {view==='article'&&article&&<article className="reading-layout">
         <div className="article-main" data-article-main>

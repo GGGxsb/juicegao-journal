@@ -5,7 +5,6 @@
 .home-copy .markdown p:last-child{margin-bottom:0}
 .home-copy .markdown h2,.home-copy .markdown h3,.home-copy .markdown h4{color:var(--ink);font-size:17px;margin:24px 0 6px}
 .home-copy .markdown>:first-child{margin-top:0}
-.home-education{padding-left:20px;border-left:2px solid var(--line)}
 .home-section>.more-link{margin-top:16px}
 .home-notes article+article{border-top:1px solid var(--line)}
 .home-notes a{display:flex;align-items:baseline;gap:24px;padding:18px 0}

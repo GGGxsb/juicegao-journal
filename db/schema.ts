@@ -1,6 +1,7 @@
 import { sql } from "drizzle-orm";
 import { check, index, integer, primaryKey, sqliteTable, text, uniqueIndex, type AnySQLiteColumn } from "drizzle-orm/sqlite-core";
 import { DEFAULT_POST_CATEGORY, POST_CATEGORIES } from "../app/lib/post-categories";
+import type { ResumeEntry } from "../app/lib/types";
 
 export const collections = sqliteTable("collections", {
   id: text("id").primaryKey(),
@@ -45,9 +46,14 @@ export const siteSettings = sqliteTable("site_settings", {
   email: text("email").notNull().default(""),
   location: text("location").notNull().default(""),
   education: text("education").notNull().default(""),
+  educationEntries: text("education_entries", { mode: "json" }).$type<ResumeEntry[]>().notNull().default([]),
+  experienceEntries: text("experience_entries", { mode: "json" }).$type<ResumeEntry[]>().notNull().default([]),
   startedAt: text("started_at").notNull().default(""),
   updatedAt: text("updated_at").notNull(),
-});
+}, (table) => [
+  check("site_settings_education_entries_array", sql`json_valid(${table.educationEntries}) AND json_type(${table.educationEntries}) = 'array'`),
+  check("site_settings_experience_entries_array", sql`json_valid(${table.experienceEntries}) AND json_type(${table.experienceEntries}) = 'array'`),
+]);
 
 export const media = sqliteTable("media", {
   id: text("id").primaryKey(),

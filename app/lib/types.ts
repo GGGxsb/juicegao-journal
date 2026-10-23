@@ -43,6 +43,15 @@ export interface PostCollection {
   categories: string[];
 }
 
+export interface ResumeEntry {
+  id: string;
+  organization: string;
+  title: string;
+  period: string;
+  description: string;
+  url: string;
+}
+
 export interface SiteSettings {
   name: string;
   bio: string;
@@ -52,8 +61,14 @@ export interface SiteSettings {
   email: string;
   location: string;
   education: string;
+  educationEntries: ResumeEntry[];
+  experienceEntries: ResumeEntry[];
   startedAt: string;
 }
+
+/** Omitted resume groups preserve existing entries; an explicit [] clears one. */
+export type SettingsInput = Omit<SiteSettings, "educationEntries" | "experienceEntries"> &
+  Partial<Pick<SiteSettings, "educationEntries" | "experienceEntries">>;
 
 export interface HomeOverview {
   today: string;

@@ -1,0 +1,31 @@
+/* Based on Axi-Theme Section.astro, Card.astro and Timeline.astro. */
+.home-section.resume-section{display:grid;grid-template-columns:144px minmax(0,1fr);gap:0;align-items:start}
+.home-section.resume-section>h2{font-size:20px;line-height:28px;font-weight:600;margin:0;padding-top:1px}
+.resume-content{min-width:0;display:flex;flex-direction:column;gap:16px}
+.resume-education-list,.resume-timeline{list-style:none;margin:0;padding:0;min-width:0}
+.resume-education-list{display:flex;flex-direction:column;gap:12px}
+.resume-education-card{padding:16px 24px;border:1px solid var(--line);border-radius:12px;background:var(--bg);transition:background-color .2s,border-color .2s;overflow-wrap:anywhere}
+.resume-education-card:has(a:hover),.resume-education-card:focus-within{background:color-mix(in srgb,var(--soft) 50%,var(--bg));border-color:color-mix(in srgb,var(--ink) 20%,var(--line))}
+.resume-organization{margin:0;font-size:18px;line-height:1.5;font-weight:600;overflow-wrap:anywhere}
+.resume-organization a{display:inline-flex;align-items:baseline;gap:6px;max-width:100%;transition:color .2s}
+.resume-organization a svg{flex-shrink:0;align-self:center;color:var(--muted)}
+.resume-title{margin:4px 0 0;font-size:14px;line-height:1.7;color:var(--muted);overflow-wrap:anywhere}
+.resume-period{margin:6px 0 0;font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:12px;line-height:1.7;color:var(--muted);overflow-wrap:anywhere}
+.resume-detail .markdown{font-size:14px;line-height:1.85;margin-top:12px;min-width:0}
+.resume-detail .markdown>:first-child{margin-top:0}.resume-detail .markdown>:last-child{margin-bottom:0}
+.resume-detail .markdown p{margin-bottom:10px}.resume-detail .markdown :is(ul,ol){margin:8px 0 12px;padding-left:20px}
+.resume-detail .markdown :is(h1,h2,h3,h4,h5,h6){font-size:16px;margin:12px 0 8px}
+.resume-education-note .markdown{margin-top:0}
+.resume-timeline{padding-left:8px}
+.resume-timeline-item{position:relative;display:flex;gap:10px;padding-bottom:28px;min-width:0}
+.resume-timeline-item:last-child{padding-bottom:0}
+.resume-timeline-item:not(:last-child):after{content:'';position:absolute;left:12px;top:20px;bottom:-4px;width:4px;background:var(--line)}
+.resume-timeline-dot{position:relative;z-index:1;flex:0 0 12px;height:12px;margin:8px 0 0 8px;border:2px solid var(--muted);border-radius:50%;background:var(--bg);transition:transform .2s}
+.resume-timeline-item:hover .resume-timeline-dot{transform:scale(1.25)}
+.resume-timeline-event{display:grid;grid-template-columns:110px minmax(0,1fr);gap:12px;flex:1;min-width:0}
+.resume-timeline-date{margin:3px 0 0;text-align:right;font-size:13px}
+.resume-timeline-content{min-width:0}
+.about-content .resume-section{margin-top:40px}
+@media(max-width:767px){.home-section.resume-section{grid-template-columns:1fr;gap:20px}.resume-timeline-event{grid-template-columns:100px minmax(0,1fr)}}
+@media(max-width:560px){.home-section.resume-section>h2{font-size:20px}.resume-education-card{padding:16px 18px}.resume-organization{font-size:17px}.resume-timeline{padding-left:0}.resume-timeline-event{grid-template-columns:1fr;gap:7px}.resume-timeline-date{display:inline-block;margin:0 0 2px;padding:3px 8px;border-radius:6px;background:var(--soft);text-align:left;font-size:12px}.resume-timeline-event>div:empty{display:none}}
+@media(prefers-reduced-motion:reduce){.resume-education-card,.resume-organization a,.resume-timeline-dot{transition:none}.resume-timeline-item:hover .resume-timeline-dot{transform:none}}
