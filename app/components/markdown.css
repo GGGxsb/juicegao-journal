@@ -1,0 +1,41 @@
+.markdown h5,.markdown h6{font-weight:600;line-height:1.5;margin:24px 0 14px;scroll-margin-top:25px}
+.markdown h5{font-size:17px}.markdown h6{font-size:16px;color:var(--muted)}
+.markdown .markdown-table{width:100%;overflow-x:auto;margin:24px 0;border:1px solid var(--line);border-radius:6px}
+.markdown .markdown-table table{width:100%;border-collapse:collapse;font-size:14px;line-height:1.7}
+.markdown .markdown-table th,.markdown .markdown-table td{padding:10px 14px;border-bottom:1px solid var(--line);min-width:110px;text-align:left}
+.markdown .markdown-table th{background:var(--soft);font-weight:600}
+.markdown .markdown-table tr:last-child td{border-bottom:0}
+.markdown .markdown-table tr:nth-child(even){background:color-mix(in srgb,var(--soft) 50%,transparent)}
+.markdown .markdown-table th[align=center],.markdown .markdown-table td[align=center]{text-align:center}
+.markdown .markdown-table th[align=right],.markdown .markdown-table td[align=right]{text-align:right}
+.markdown .contains-task-list{list-style:none;padding-left:6px}
+.markdown .task-list-item{position:relative;padding-left:23px}
+.markdown .task-list-item>input{position:absolute;left:0;top:.55em;width:14px;height:14px;margin:0;accent-color:var(--accent)}
+.markdown .task-list-item>p{margin-bottom:12px}
+.markdown li>ul,.markdown li>ol{margin:8px 0 12px}
+.markdown li>p{margin:0 0 10px}
+.markdown del{color:var(--muted)}
+.markdown .footnotes{margin-top:38px;border-top:1px solid var(--line);padding-top:22px;font-size:13px;color:var(--muted)}
+.markdown .footnotes h2{font-size:18px;margin:0 0 16px}
+.markdown .footnotes p{margin:0 0 10px}
+.markdown .footnotes li{scroll-margin-top:35px}
+.markdown .data-footnote-backref{white-space:nowrap}
+.markdown .katex{font-size:1.1em}
+.markdown .katex-display{overflow-x:auto;overflow-y:hidden;padding:8px 2px;margin:24px 0}
+.markdown .katex-error{overflow-wrap:anywhere;font-family:Consolas,monospace}
+.markdown .markdown-code{background:var(--soft);border:1px solid var(--line);border-radius:6px;margin:24px 0;overflow:hidden}
+.markdown .markdown-code-toolbar{min-height:38px;padding:7px 13px;border-bottom:1px solid var(--line);display:flex;gap:14px;align-items:center;color:var(--muted);font-size:11px;line-height:1.5}
+.markdown .markdown-code-toolbar>span:first-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.markdown .markdown-code-toolbar>button{margin-left:auto;flex-shrink:0;font-size:11px;padding:3px 5px;white-space:nowrap;border-radius:3px;color:var(--muted)}
+.markdown .markdown-code-toolbar>button:hover{background:var(--bg);color:var(--ink)}
+.markdown .markdown-copy-status{font-size:10px}
+.markdown .markdown-copy-status:empty{display:none}
+.markdown .markdown-code pre{padding:17px;margin:0;overflow-x:auto;line-height:1.7;white-space:pre}
+.markdown .markdown-code pre code{padding:0;background:none;border-radius:0;font-size:13px;font-family:Consolas,monospace}
+.markdown .markdown-code-token{color:var(--code-light,inherit)}
+:root[data-theme=dark] .markdown .markdown-code-token{color:var(--code-dark,inherit)}
+.admin-screen .markdown{--bg:#fff;--ink:var(--a-ink);--muted:#718197;--line:var(--a-line);--soft:#f4f7fa;--accent:var(--a-blue);color:var(--ink)}
+:root[data-theme=dark] .admin-screen .markdown .markdown-code-token{color:var(--code-light,inherit)}
+.admin-screen .markdown .markdown-code-toolbar>button{border:0;background:transparent}
+.admin-screen .markdown .task-list-item>input{padding:0}
+@media(max-width:560px){.markdown .markdown-table th,.markdown .markdown-table td{padding:8px 10px;min-width:95px}.markdown .markdown-code-toolbar{gap:8px}.markdown .markdown-code pre{padding:13px}.markdown .markdown-copy-status{max-width:110px}}

@@ -14,7 +14,7 @@ export default async function PublicPage({ view, searchParams }: { view: PublicV
 
   const values = await searchParams ?? {};
   const params = new URLSearchParams();
-  for (const key of ['page', 'pageSize', 'category', 'q']) {
+  for (const key of ['page', 'pageSize', 'category', 'tag', 'q']) {
     const value = values[key];
     if (Array.isArray(value)) notFound();
     if (value !== undefined) params.set(key, value);
@@ -31,5 +31,5 @@ export default async function PublicPage({ view, searchParams }: { view: PublicV
     getSettings(),
     queryPosts({ ...options, ...(view === 'articles' ? { kind: 'article' } : view === 'notes' ? { kind: 'note' } : {}) }),
   ]);
-  return <Journal settings={settings} view={view} {...collection} selectedCategory={options.category ?? '全部'} searchQuery={options.q ?? ''} />;
+  return <Journal settings={settings} view={view} {...collection} selectedCategory={options.category ?? '全部'} selectedTag={options.tag ?? ''} searchQuery={options.q ?? ''} />;
 }

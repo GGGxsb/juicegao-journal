@@ -3,7 +3,7 @@ import { requestOrigin } from "./request-security";
 import { and, asc, count, desc, eq, or, sql, type SQL } from "drizzle-orm";
 import { z } from "zod";
 import { getDb } from "@/db";
-import { media, posts, siteSettings } from "@/db/schema";
+import { collections, media, posts, siteSettings } from "@/db/schema";
 import { getAdminSession, requireAdmin, type AdminPrincipal } from "./admin-auth";
 import { ApiError } from "./errors";
 export { getAdminSession, requireAdmin, ApiError };
@@ -40,6 +40,8 @@ export interface PostQueryOptions {
   scope?: "published" | "all";
   kind?: PostKind;
   category?: string;
+  tag?: string;
+  collectionId?: string;
   q?: string;
   status?: PostStatus;
   page?: number;
@@ -50,6 +52,8 @@ const postQuerySchema = z.object({
   scope: z.enum(["published", "all"]).default("published"),
   kind: z.enum(["article", "note"]).optional(),
   category: z.string().trim().min(1).max(60).optional(),
+  tag: z.string().trim().min(1).max(40).optional(),
+  collectionId: z.string().uuid().optional(),
   q: z.string().trim().max(200).optional(),
   status: z.enum(["draft", "published"]).optional(),
   page: z.number().int().positive().max(Number.MAX_SAFE_INTEGER).default(1),
@@ -117,6 +121,8 @@ export async function queryPosts(options: PostQueryOptions = {}): Promise<PostCo
   if (value.status) conditions.push(eq(posts.status, value.status));
   if (value.kind) conditions.push(eq(posts.kind, value.kind));
   if (value.category) conditions.push(eq(posts.category, value.category));
+  if (value.tag) conditions.push(sql`exists (select 1 from json_each(${posts.tags}) where json_each.type = 'text' and json_each.value = ${value.tag})`);
+  if (value.collectionId) conditions.push(eq(posts.collectionId, value.collectionId));
   if (value.q) {
     // LIKE's escape character, % and _ are all literal user input.
     const pattern = `%${value.q.toLowerCase().replace(/[\\%_]/g, "\\$&")}%`;
@@ -135,7 +141,9 @@ export async function queryPosts(options: PostQueryOptions = {}): Promise<PostCo
   const total = result.total;
   const totalPages = Math.max(1, Math.ceil(total / value.pageSize));
   const page = Math.min(value.page, totalPages);
-  const ordering = value.scope === "all"
+  const ordering = value.collectionId
+    ? [asc(posts.collectionOrder), asc(posts.publishedAt), asc(posts.id)]
+    : value.scope === "all"
     ? [desc(posts.updatedAt), desc(posts.id)]
     : [desc(posts.publishedAt), desc(posts.updatedAt), desc(posts.id)];
   const pagePosts = await db.select().from(posts).where(where)
@@ -185,6 +193,8 @@ const postSchema = z.object({
   kind: z.enum(["article", "note"]).default("article"),
   status: z.enum(["draft", "published"]).default("draft"),
   coverImage: imageUrlSchema.default(""),
+  collectionId: z.string().uuid().nullable().default(null),
+  collectionOrder: z.number().int().min(0).max(1_000_000).default(0),
 }).strict();
 
 const settingsSchema = z.object({
@@ -221,6 +231,7 @@ export function validateSettings(input: unknown): SiteSettings {
 }
 
 export async function createPost(input: PostInput): Promise<Post> {
+  await checkPostCollection(input.collectionId);
   const now = new Date().toISOString();
   const id = crypto.randomUUID();
   const [post] = await getDb().insert(posts).values({
@@ -237,11 +248,18 @@ export async function updatePost(id: string, input: PostInput): Promise<Post> {
   const db = getDb();
   const [existing] = await db.select().from(posts).where(eq(posts.id, id)).limit(1);
   if (!existing) throw new ApiError(404, "文章不存在或已删除。");
+  await checkPostCollection(input.collectionId);
   const now = new Date().toISOString();
   const [post] = await db.update(posts).set({ ...input, updatedAt: now,
     publishedAt: input.status === "published" ? (existing.publishedAt || now) : existing.publishedAt,
   }).where(eq(posts.id, id)).returning();
   return post;
+}
+
+async function checkPostCollection(id: string | null): Promise<void> {
+  if (!id) return;
+  const [collection] = await getDb().select({ id: collections.id }).from(collections).where(eq(collections.id, id)).limit(1);
+  if (!collection) throw new ApiError(400, "所选合集不存在，请重新选择。");
 }
 
 export async function deletePost(id: string): Promise<void> {
