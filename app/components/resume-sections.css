@@ -22,10 +22,11 @@
 .resume-timeline-item:not(:last-child):after{content:'';position:absolute;left:12px;top:20px;bottom:-4px;width:4px;background:var(--line)}
 .resume-timeline-dot{position:relative;z-index:1;flex:0 0 12px;height:12px;margin:8px 0 0 8px;border:2px solid var(--muted);border-radius:50%;background:var(--bg);transition:transform .2s}
 .resume-timeline-item:hover .resume-timeline-dot{transform:scale(1.25)}
-.resume-timeline-event{display:grid;grid-template-columns:110px minmax(0,1fr);gap:12px;flex:1;min-width:0}
-.resume-timeline-date{margin:3px 0 0;text-align:right;font-size:13px}
+.resume-timeline-event{display:grid;grid-template-columns:200px minmax(0,1fr);gap:12px;flex:1;min-width:0}
+.resume-timeline-event>div{min-width:0}
+.resume-timeline-date{margin:3px 0 0;text-align:right;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .resume-timeline-content{min-width:0}
 .about-content .resume-section{margin-top:40px}
-@media(max-width:767px){.home-section.resume-section{grid-template-columns:1fr;gap:20px}.resume-timeline-event{grid-template-columns:100px minmax(0,1fr)}}
-@media(max-width:560px){.home-section.resume-section>h2{font-size:20px}.resume-education-card{padding:16px 18px}.resume-organization{font-size:17px}.resume-timeline{padding-left:0}.resume-timeline-event{grid-template-columns:1fr;gap:7px}.resume-timeline-date{display:inline-block;margin:0 0 2px;padding:3px 8px;border-radius:6px;background:var(--soft);text-align:left;font-size:12px}.resume-timeline-event>div:empty{display:none}}
+@media(max-width:767px){.home-section.resume-section{grid-template-columns:1fr;gap:20px}}
+@media(max-width:560px){.home-section.resume-section>h2{font-size:20px}.resume-education-card{padding:16px 18px}.resume-organization{font-size:17px}.resume-timeline{padding-left:0}.resume-timeline-event{grid-template-columns:1fr;gap:7px}.resume-timeline-date{display:inline-block;max-width:100%;margin:0 0 2px;padding:3px 8px;border-radius:6px;background:var(--soft);text-align:left;font-size:12px}.resume-timeline-event>div:empty{display:none}}
 @media(prefers-reduced-motion:reduce){.resume-education-card,.resume-organization a,.resume-timeline-dot{transition:none}.resume-timeline-item:hover .resume-timeline-dot{transform:none}}

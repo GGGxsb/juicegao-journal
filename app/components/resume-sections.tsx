@@ -42,7 +42,7 @@ export default function ResumeSections({settings}: {settings: Pick<SiteSettings,
       <div className="resume-content"><ol className="resume-timeline">{experience.map(entry => <li className="resume-timeline-item" key={entry.id} data-resume-id={entry.id}>
         <span className="resume-timeline-dot" aria-hidden="true"/>
         <div className="resume-timeline-event">
-          <div>{entry.period && <p className="resume-period resume-timeline-date">{entry.period}</p>}</div>
+          <div>{entry.period && <p className="resume-period resume-timeline-date" title={entry.period}>{entry.period}</p>}</div>
           <article className="resume-timeline-content"><EntryHeading entry={entry}/>{entry.description && <div className="resume-detail"><Markdown content={entry.description}/></div>}</article>
         </div>
       </li>)}</ol></div>
