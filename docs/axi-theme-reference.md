@@ -24,6 +24,8 @@
 
 适配差异：本站保留 SQL 文章 ID 路由与后台 Markdown 写作，通过受限 directive 使用正文组件。点击粒子设有数量上限，跳过文本输入和后台；所有非必要动效尊重系统“减少动态效果”。标签页和折叠继续提供 ARIA 与键盘操作，GitHub API 失败时保留可访问的静态卡片。
 
+在渐隐封面基础上，本站增加自动提取封面主色：客户端缩小采样图片并忽略透明、近黑和近白区域，将主色混合到当前主题的背景与文字中，联动卡片悬停和键盘聚焦状态；读取失败保留默认配色。这是本站的扩展实现。后台独立的 SQL 自动备份、本机离线备份与版本冲突恢复，也属于本站写作流程的扩展。
+
 ## 来源与许可
 
 Axi-Theme 使用 Apache License 2.0；完整原许可见 [axi-theme-LICENSE.txt](licenses/axi-theme-LICENSE.txt)。本轮对粒子、导航、卡片、提示框、折叠、标签页、步骤、图片组及仓库卡片作 React/Next.js 改写。原项目中 Aside、Tabs、Steps 亦注明其实现参考 [Astro Starlight](https://github.com/withastro/starlight)。未使用参考站点的个人资料、头像、文章、分析统计标识或第三方追踪脚本。

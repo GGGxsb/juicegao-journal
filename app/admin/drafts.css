@@ -1,0 +1,9 @@
+.admin-draft-list,.admin-draft-recovery{padding:18px 20px;margin:0 0 22px;border:1px solid #dce8f1;border-radius:8px;background:#f5f9fc;color:#607a91}
+.admin-draft-list h2,.admin-draft-recovery h2{font-size:14px;margin:0 0 7px;font-weight:600}
+.admin-draft-list p,.admin-draft-recovery p{font-size:12px;line-height:1.8;margin:0 0 12px}
+.admin-draft-list>div{display:flex;flex-wrap:wrap;gap:9px}
+.admin-draft-list>div>button{text-align:left;border:1px solid #dce8f1;background:white;border-radius:6px;padding:10px 12px;max-width:100%}
+.admin-draft-list strong{display:block;font-size:12px;overflow-wrap:anywhere;font-weight:500}.admin-draft-list span{display:block;font-size:10px;color:#90a4b6;margin-top:5px}
+.admin-draft-recovery>div{display:flex;flex-wrap:wrap;gap:10px}
+.admin-save-status{max-width:65%;text-align:right;line-height:1.7;overflow-wrap:anywhere}
+.admin-autosave-retry{font-size:11px;color:#7698b6;padding:0 0 0 8px}

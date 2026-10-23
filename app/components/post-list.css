@@ -3,6 +3,11 @@
 .post-list{display:flex;flex-direction:column;gap:14px}
 .post-list .post-item,.post-list .post-item:last-child{position:relative;isolation:isolate;overflow:hidden;border:1px solid var(--line);border-radius:16px;padding:20px;transition:background-color .2s ease-in-out,border-color .2s}
 .post-list .post-item:hover,.post-list .post-item:focus-within{background:var(--soft)}
+.post-item.has-cover-color{--cover-ink:color-mix(in srgb,var(--cover-color) 40%,var(--ink));--cover-tint:color-mix(in srgb,var(--cover-color) 12%,var(--bg));--cover-border:color-mix(in srgb,var(--cover-color) 38%,var(--line))}
+.post-list .post-item.has-cover-color:hover,.post-list .post-item.has-cover-color:focus-within{background:var(--cover-tint);border-color:var(--cover-border)}
+.post-item.has-cover-color:hover h2,.post-item.has-cover-color:focus-within h2,.post-item.has-cover-color:hover .axi-redirect,.post-item.has-cover-color:focus-within .axi-redirect{color:var(--cover-ink)}
+.post-item.has-cover-color .post-item-tags a{transition:color .2s,background-color .2s,border-color .2s}
+.post-item.has-cover-color:hover .post-item-tags a,.post-item.has-cover-color:focus-within .post-item-tags a{background:var(--cover-tint);color:var(--cover-ink)}
 .post-summary{position:relative;z-index:1;min-width:0;overflow-wrap:anywhere}
 .has-cover .post-summary{padding-right:22%;min-height:112px}
 .post-item-tags{position:relative;z-index:1;display:flex;flex-wrap:wrap;gap:6px 12px;margin-top:12px;font-size:12px;color:var(--muted)}

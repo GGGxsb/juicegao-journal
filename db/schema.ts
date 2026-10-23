@@ -2,6 +2,7 @@ import { sql } from "drizzle-orm";
 import { check, index, integer, primaryKey, sqliteTable, text, uniqueIndex, type AnySQLiteColumn } from "drizzle-orm/sqlite-core";
 import { DEFAULT_POST_CATEGORY, POST_CATEGORIES } from "../app/lib/post-categories";
 import type { ResumeEntry } from "../app/lib/types";
+import type { EditorValue } from "../app/lib/draft-state";
 
 export const collections = sqliteTable("collections", {
   id: text("id").primaryKey(),
@@ -115,3 +116,19 @@ export const interactionRateLimits = sqliteTable("interaction_rate_limits", {
   attempts: integer("attempts").notNull(),
   windowStart: integer("window_start").notNull(),
 }, table => [index("interaction_rate_window_idx").on(table.windowStart)]);
+
+export const writingDrafts = sqliteTable("writing_drafts", {
+  ownerId: text("owner_id").notNull().references(() => adminAccounts.id, {onDelete:"cascade"}),
+  documentKey: text("document_key").notNull(),
+  postId: text("post_id").references(() => posts.id, {onDelete:"cascade"}),
+  editor: text("editor", {mode:"json"}).$type<EditorValue>().notNull(),
+  baseUpdatedAt: text("base_updated_at").notNull().default(""),
+  revision: integer("revision").notNull().default(1),
+  updatedAt: text("updated_at").notNull(),
+}, table => [
+  primaryKey({columns:[table.ownerId,table.documentKey]}),
+  index("writing_drafts_owner_updated_idx").on(table.ownerId,table.updatedAt),
+  check("writing_drafts_editor_object",sql`json_valid(${table.editor}) AND json_type(${table.editor}) = 'object'`),
+  check("writing_drafts_revision_positive",sql`${table.revision} > 0`),
+  check("writing_drafts_document_match",sql`(${table.documentKey} = 'new' AND ${table.postId} IS NULL) OR (${table.documentKey} = ${table.postId} AND ${table.postId} IS NOT NULL)`),
+]);
