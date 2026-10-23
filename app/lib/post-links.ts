@@ -8,7 +8,3 @@ export function tagHref(tag: string): string {
   if (tag === '.' || tag === '..') return `/archive?${new URLSearchParams({ tag })}`;
   return `/tags/${encodeURIComponent(tag)}`;
 }
-
-export function collectionHref(collection: { id: string }): string {
-  return `/collections/${encodeURIComponent(collection.id)}`;
-}

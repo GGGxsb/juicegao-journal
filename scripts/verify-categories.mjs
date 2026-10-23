@@ -43,7 +43,7 @@ try {
   const ownerList=await json(await request(`/api/posts?scope=all&category=Technical&q=${marker}`, 'GET',undefined,true));
   assert.equal(ownerList.pagination.total,2);
   console.log('PASS API mutations reject arbitrary categories and the owner can filter published posts and drafts');
-  const payload={title:life.title,excerpt:life.excerpt,content:life.content,category:'Technical',tags:[marker,'只属于这篇文章'],kind:life.kind,status:life.status,coverImage:life.coverImage,collectionId:life.collectionId,collectionOrder:life.collectionOrder};
+  const payload={title:life.title,excerpt:life.excerpt,content:life.content,category:'Technical',tags:[marker,'只属于这篇文章'],kind:life.kind,status:life.status,coverImage:life.coverImage};
   const updated=await json(await request(`/api/posts/${life.id}`,'PUT',payload,true));
   assert.equal(updated.post.id,life.id);assert.deepEqual(updated.post.tags,payload.tags);
   assert.equal((await json(await request(`/api/posts?tag=${encodeURIComponent('只属于这篇文章')}`))).posts[0].id,life.id);

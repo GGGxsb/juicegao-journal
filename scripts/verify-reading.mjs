@@ -1,4 +1,4 @@
-/** Integration checks for the reader, tags and collections on disposable local data. */
+/** Integration checks for the reader, tags and retired collection routes on disposable local data. */
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { randomBytes } from 'node:crypto';
@@ -16,7 +16,7 @@ const runId = `reading-${Date.now().toString(36)}-${randomBytes(3).toString('hex
 const specialTag = `C++ / 中文 # % ${runId}`;
 const encodedTag = `%2F-${runId}`;
 const content = readFileSync(new URL('./fixtures/reading.md', import.meta.url), 'utf8');
-const postIds = new Set(), collectionIds = new Set();
+const postIds = new Set();
 let cookie = '', checks = 0;
 function passed(label) { checks++; console.log(`PASS ${label}`); }
 async function request(route, { auth = false, method = 'GET', body, origin = base.origin } = {}) {
@@ -39,10 +39,6 @@ async function createPost(fields) {
   } }), 201);
   postIds.add(result.post.id); return result.post;
 }
-async function createCollection(title) {
-  const result = await json(await request('/api/collections', { auth: true, method: 'POST', body: { title, description: '本机验证合集。' } }), 201);
-  collectionIds.add(result.collection.id); return result.collection;
-}
 
 try {
   const session = await json(await request('/api/session'));
@@ -50,48 +46,39 @@ try {
   await json(response, session.setupRequired ? 201 : 200);
   cookie = response.headers.getSetCookie().map(value => value.split(';')[0]).join('; ');
   assert.ok(cookie);
-  assert.equal((await request('/api/collections?scope=all')).status, 401);
-  assert.equal((await request('/api/collections', { method: 'POST', body: { title: 'unauthorized' } })).status, 401);
-  assert.equal((await request('/api/collections', { auth: true, method: 'POST', origin: 'https://invalid.example', body: { title: 'bad-origin' } })).status, 403);
-  passed('collection management requires a signed-in owner and same-origin requests');
-
-  const collection = await createCollection(`${runId} series`);
-  const privateCollection = await createCollection(`${runId} private collection`);
-  const emptyCollection = await createCollection(`${runId} empty collection`);
-  const middle = await createPost({ title: `${runId} middle chapter`, tags: [runId, specialTag, encodedTag, 'JS'], collectionId: collection.id, collectionOrder: 20 });
-  const first = await createPost({ title: `${runId} first chapter`, tags: [runId, 'JS'], collectionId: collection.id, collectionOrder: 10 });
-  const last = await createPost({ title: `${runId} last chapter`, tags: [runId, 'JavaScript'], collectionId: collection.id, collectionOrder: 30 });
-  const draft = await createPost({ title: `${runId} PRIVATE_DRAFT`, tags: [runId, `${runId}-private-tag`], status: 'draft', collectionId: collection.id, collectionOrder: 15 });
-  await createPost({ title: `${runId} PRIVATE_COLLECTION_POST`, status: 'draft', collectionId: privateCollection.id });
+  const middle = await createPost({ title: `${runId} middle article`, tags: [runId, specialTag, encodedTag, 'JS'] });
+  const first = await createPost({ title: `${runId} first article`, tags: [runId, 'JS'] });
+  const last = await createPost({ title: `${runId} last article`, tags: [runId, 'JavaScript'] });
+  const draft = await createPost({ title: `${runId} PRIVATE_DRAFT`, tags: [runId, `${runId}-private-tag`], status: 'draft' });
   const note = await createPost({ title: `${runId} note`, kind: 'note', tags: [runId, 'JS', '.', '..'] });
+  await createPost({ title: `${runId} different category`, category: 'Technical', tags: [] });
   assert.equal((await request(`/posts/${draft.id}`)).status, 404);
 
-  const publicCollections = await json(await request('/api/collections?pageSize=100'));
-  const series = publicCollections.collections.find(value => value.id === collection.id);
-  assert.equal(series.postCount, 3);
-  assert.ok(!publicCollections.collections.some(value => [privateCollection.id, emptyCollection.id].includes(value.id)));
-  const allCollections = await json(await request('/api/collections?scope=all&pageSize=100', { auth: true }));
-  assert.equal(allCollections.collections.find(value => value.id === collection.id).postCount, 4);
-  passed('public collections expose only published chapters and hide empty or private collections');
+  for (const route of ['/collections', '/collections/legacy-id']) {
+    const response = await request(route);
+    assert.equal(response.status, 308);
+    assert.equal(new URL(response.headers.get('location'), base).pathname, '/articles');
+  }
+  for (const route of ['/api/collections', '/api/collections/legacy-id']) {
+    for (const method of ['GET', 'POST', 'PUT', 'DELETE']) assert.equal((await request(route, { auth: true, method, ...(method === 'GET' ? {} : { body: { title: 'retired' } }) })).status, 404);
+  }
+  assert.equal((await request('/api/posts?collectionId=22222222-2222-4222-8222-222222222222')).status, 400);
+  assert.ok(!Object.hasOwn(middle, 'collectionId') && !Object.hasOwn(middle, 'collectionOrder'));
+  assert.ok(!(await html('/articles')).includes('文章合集'));
+  assert.ok(!(await html('/sitemap.xml')).includes('/collections'));
+  passed('removed collection pages redirect to articles, management endpoints are unavailable and public links are cleaned up');
 
-  const chapters = await json(await request(`/api/posts?collectionId=${collection.id}&pageSize=2`));
-  assert.equal(chapters.pagination.total, 3);
-  assert.deepEqual(chapters.posts.map(value => value.id), [first.id, middle.id]);
-  const chapterPage2 = await json(await request(`/api/posts?collectionId=${collection.id}&pageSize=2&page=2`));
-  assert.deepEqual(chapterPage2.posts.map(value => value.id), [last.id]);
-  const collectionHtml = await html(`/collections/${collection.id}`);
-  assert.ok(collectionHtml.includes(first.title) && collectionHtml.includes(last.title));
-  assert.ok(!collectionHtml.includes(draft.title));
-  assert.equal((await request(`/collections/${privateCollection.id}`)).status, 404);
-  passed('chapters use SQL pagination and owner-defined order without draft leakage');
-
+  const ordered = [first, middle, last].sort((a, b) => a.publishedAt < b.publishedAt ? -1 : a.publishedAt > b.publishedAt ? 1 : a.id < b.id ? -1 : 1);
+  for (const [index, post] of ordered.entries()) {
+    const markup = await html(`/posts/${post.id}`);
+    if (index) assert.ok(markup.includes(`data-prev="${ordered[index-1].id}"`));
+    else assert.ok(!markup.includes('rel="prev"'));
+    if (index < ordered.length - 1) assert.ok(markup.includes(`data-next="${ordered[index+1].id}"`));
+    else assert.ok(!markup.includes('rel="next"'));
+    assert.ok(!markup.includes('article-series'));
+  }
   const middleHtml = await html(`/posts/${middle.id}`);
-  assert.ok(middleHtml.includes(`data-prev="${first.id}"`), 'Previous chapter must skip the intervening draft.');
-  assert.ok(middleHtml.includes(`data-next="${last.id}"`));
-  const firstHtml = await html(`/posts/${first.id}`), lastHtml = await html(`/posts/${last.id}`);
-  assert.ok(!firstHtml.includes('rel="prev"'), 'The first chapter must not wrap to the last.');
-  assert.ok(!lastHtml.includes('rel="next"'), 'The last chapter must not wrap to the first.');
-  passed('previous and next chapter navigation respects collection order and boundaries');
+  passed('previous and next articles follow publication order within their category and type, skipping drafts');
 
   const exact = await json(await request(`/api/posts?tag=JS&q=${runId}&pageSize=50`));
   assert.deepEqual(new Set(exact.posts.map(value => value.id)), new Set([first.id, middle.id, note.id]));
@@ -120,18 +107,9 @@ try {
   assert.ok(!middleHtml.includes('<script>alert(') && !middleHtml.includes('href="javascript:'));
   passed('public Markdown renders GFM, formulas, footnotes and stable heading anchors safely');
 
-  await json(await request(`/api/collections/${collection.id}`, { auth: true, method: 'PUT', body: { title: `${runId} renamed series`, description: '更新后的合集说明' } }));
-  assert.ok((await html(`/collections/${collection.id}`)).includes('更新后的合集说明'));
-  await json(await request(`/api/collections/${collection.id}`, { auth: true, method: 'DELETE' }));
-  collectionIds.delete(collection.id);
-  const postAfterDelete = await json(await request(`/api/posts/${middle.id}`, { auth: true }));
-  assert.equal(postAfterDelete.post.collectionId, null);
-  assert.equal((await request(`/posts/${middle.id}`)).status, 200);
-  passed('editing and deleting a collection preserves its articles and immutable IDs');
 } finally {
   const errors = [];
   for (const id of postIds) try { await json(await request(`/api/posts/${id}`, { auth: true, method: 'DELETE' })); } catch (error) { errors.push(error); }
-  for (const id of collectionIds) try { await json(await request(`/api/collections/${id}`, { auth: true, method: 'DELETE' })); } catch (error) { errors.push(error); }
   if (cookie) await request('/api/auth/logout', { auth: true, method: 'POST' });
   if (errors.length) throw new AggregateError(errors, 'Disposable local test cleanup failed.');
 }

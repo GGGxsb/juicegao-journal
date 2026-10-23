@@ -21,7 +21,7 @@ try{
   const postId=randomUUID(),oldComment=randomUUID(),stamp=new Date().toISOString();
   db.prepare('INSERT INTO posts(id,title,slug,content,status,created_at,updated_at)VALUES(?,?,?,?,?,?,?)').run(postId,'评论登录检查',postId,'公开文章','published',stamp,stamp);
   db.prepare('INSERT INTO comments(id,post_id,nickname,content,status,created_at)VALUES(?,?,?,?,?,?)').run(oldComment,postId,'旧游客','原有评论','approved',stamp);
-  const original={...db.prepare('SELECT * FROM comments WHERE id=?').get(oldComment)};assert.equal(migrateDatabase().applied,1);
+  const original={...db.prepare('SELECT * FROM comments WHERE id=?').get(oldComment)};assert.ok(migrateDatabase().applied>=1);
   const upgraded={...db.prepare('SELECT * FROM comments WHERE id=?').get(oldComment)};for(const [key,value]of Object.entries(original))assert.equal(upgraded[key],value);assert.equal(upgraded.provider,'');assert.equal(upgraded.author_id,null);
   const {startCommentLogin,finishCommentLogin,commentSession,commentAccount,logoutCommentAccount}=await import('../app/lib/comment-auth.ts');
   const {submitComment,listPublicComments}=await import('../app/lib/interactions.ts');

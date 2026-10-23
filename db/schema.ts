@@ -4,14 +4,6 @@ import { DEFAULT_POST_CATEGORY, POST_CATEGORIES } from "../app/lib/post-categori
 import type { ResumeEntry } from "../app/lib/types";
 import type { EditorValue } from "../app/lib/draft-state";
 
-export const collections = sqliteTable("collections", {
-  id: text("id").primaryKey(),
-  title: text("title").notNull(),
-  description: text("description").notNull().default(""),
-  createdAt: text("created_at").notNull(),
-  updatedAt: text("updated_at").notNull(),
-});
-
 export const posts = sqliteTable("posts", {
   id: text("id").primaryKey(),
   title: text("title").notNull(),
@@ -24,8 +16,6 @@ export const posts = sqliteTable("posts", {
   kind: text("kind", { enum: ["article", "note"] }).notNull().default("article"),
   status: text("status", { enum: ["draft", "published"] }).notNull().default("draft"),
   coverImage: text("cover_image").notNull().default(""),
-  collectionId: text("collection_id").references(() => collections.id, { onDelete: "set null" }),
-  collectionOrder: integer("collection_order").notNull().default(0),
   publishedAt: text("published_at").notNull().default(""),
   createdAt: text("created_at").notNull(),
   updatedAt: text("updated_at").notNull(),
@@ -33,7 +23,6 @@ export const posts = sqliteTable("posts", {
   check("posts_category_check", sql`${table.category} IN ('Daily Life', 'Technical')`),
   uniqueIndex("posts_slug_unique").on(table.slug),
   index("posts_status_published_idx").on(table.status, table.publishedAt),
-  index("posts_collection_order_idx").on(table.collectionId, table.status, table.collectionOrder, table.publishedAt, table.id),
   index("posts_category_navigation_idx").on(table.kind, table.category, table.status, table.publishedAt, table.id),
 ]);
 

@@ -8,7 +8,7 @@ export default function SiteMotion() {
     const preference = matchMedia('(prefers-reduced-motion: reduce)');
     const animations = new Set<Animation>(), particles = new Set<HTMLElement>();
     const seen = new WeakSet<Element>();
-    const selector = '.journal .profile,.journal .listing-page>h1,.journal .home-section,.journal .post-item,.journal .collection-directory>a,.journal .tag-directory>a,.journal .article-main>h1,.journal .article-meta,.journal .reader-sidebar';
+    const selector = '.journal .profile,.journal .listing-page>h1,.journal .home-section,.journal .post-item,.journal .tag-directory>a,.journal .article-main>h1,.journal .article-meta,.journal .reader-sidebar';
     const observer = new IntersectionObserver(entries => {
       let index = 0;
       entries.forEach(entry => {

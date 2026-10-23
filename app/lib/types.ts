@@ -13,8 +13,6 @@ export interface Post {
   kind: PostKind;
   status: PostStatus;
   coverImage: string;
-  collectionId: string | null;
-  collectionOrder: number;
   publishedAt: string;
   createdAt: string;
   updatedAt: string;
@@ -78,37 +76,18 @@ export interface HomeOverview {
   notes: Pick<Post, "id" | "title" | "excerpt" | "publishedAt">[];
 }
 
-export type PostInput = Pick<Post, "title" | "excerpt" | "content" | "category" | "tags" | "kind" | "status" | "coverImage" | "collectionId" | "collectionOrder">;
+export type PostInput = Pick<Post, "title" | "excerpt" | "content" | "category" | "tags" | "kind" | "status" | "coverImage">;
 
 export interface TagSummary {
   tag: string;
   postCount: number;
 }
 
-export interface Collection {
-  id: string;
-  title: string;
-  description: string;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface CollectionSummary extends Collection {
-  postCount: number;
-}
-
-export interface CollectionList {
-  collections: CollectionSummary[];
-  pagination: Pagination;
-}
-
-export type CollectionInput = Pick<Collection, "title" | "description">;
 export type PostLink = Pick<Post, "id" | "title">;
 
 export interface ArticleNavigation {
   previous: PostLink | null;
   next: PostLink | null;
-  collection: { id: string; title: string; position: number; total: number } | null;
 }
 
 export interface AdminSession {

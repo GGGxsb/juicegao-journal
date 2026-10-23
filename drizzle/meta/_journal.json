@@ -64,6 +64,13 @@
       "when": 1792695600000,
       "tag": "0008_comment_identities",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "6",
+      "when": 1792702800000,
+      "tag": "0009_remove_collections",
+      "breakpoints": true
     }
   ]
 }
