@@ -1,10 +1,9 @@
-/* React adaptation of Axi-Theme Section.astro, Card.astro and Timeline.astro. */
+/* React adaptation of Axi-Theme Section.astro and Card.astro. */
 .home-section.resume-section{display:grid;grid-template-columns:144px minmax(0,1fr);gap:0;align-items:start}
 .home-section.resume-section>h2{font-size:20px;line-height:28px;font-weight:600;margin:0}
-.resume-content{min-width:0;display:flex;flex-direction:column;gap:12px;container:resume / inline-size}
-.resume-education-list,.resume-timeline{list-style:none;margin:0;padding:0;min-width:0}
-.resume-education-list{display:flex;flex-direction:column;gap:12px}
-.resume-education-card{
+.resume-content{min-width:0;display:flex;flex-direction:column;gap:12px}
+.resume-card-list{list-style:none;margin:0;padding:0;min-width:0;display:flex;flex-direction:column;gap:12px}
+.resume-card{
   position:relative;
   display:flex;
   flex-direction:column;
@@ -16,8 +15,8 @@
   overflow-wrap:anywhere;
   transition:background-color .2s,border-color .2s;
 }
-.resume-education-card:has(.resume-card-link){cursor:pointer}
-.resume-education-card:has(.resume-card-link):is(:hover,:focus-within){
+.resume-card:has(.resume-card-link){cursor:pointer}
+.resume-card:has(.resume-card-link):is(:hover,:focus-within){
   background:color-mix(in srgb,var(--soft) 30%,var(--bg));
   border-color:color-mix(in srgb,var(--ink) 20%,var(--bg));
 }
@@ -28,53 +27,15 @@
 .resume-card-link::after{content:'';position:absolute;inset:0;border-radius:12px}
 .resume-card-link:focus-visible{outline:none}
 .resume-card-link:focus-visible::after{outline:2px solid var(--accent);outline-offset:4px}
-.resume-education-card .resume-detail :is(a,button,input,select,textarea,summary,[tabindex]){position:relative;z-index:1}
-.resume-title{margin:4px 0 0;font-size:14px;line-height:20px;color:var(--muted);overflow-wrap:anywhere}
+.resume-card .resume-detail :is(a,button,input,select,textarea,summary,[tabindex]){position:relative;z-index:1}
+.resume-title{margin:0;font-size:14px;line-height:20px;color:var(--muted);overflow-wrap:anywhere}
 .resume-period{margin:0;font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:12px;line-height:16px;color:color-mix(in srgb,var(--muted) 80%,var(--bg));overflow-wrap:anywhere}
-.resume-card-heading>.resume-title{margin:0}
-.resume-detail .markdown{font-size:14px;line-height:1.85;margin-top:8px;min-width:0}
-.resume-education-card .resume-detail .markdown{margin-top:0}
+.resume-detail .markdown{font-size:14px;line-height:1.85;margin-top:0;min-width:0}
 .resume-detail .markdown>:first-child{margin-top:0}.resume-detail .markdown>:last-child{margin-bottom:0}
 .resume-detail .markdown p{margin-bottom:10px}.resume-detail .markdown :is(ul,ol){margin:8px 0 12px;padding-left:20px}
 .resume-detail .markdown :is(h1,h2,h3,h4,h5,h6){font-size:16px;margin:12px 0 8px}
-.resume-education-note .markdown{margin-top:0}
-.resume-timeline{padding-left:8px}
-.resume-timeline-item{position:relative;display:flex;gap:8px;padding-bottom:24px;min-width:0}
-.resume-timeline-item:last-child{padding-bottom:0}
-.resume-timeline-item:not(:last-child)::after{content:'';position:absolute;left:12px;top:20px;bottom:-4px;width:4px;background:var(--line)}
-.resume-timeline-dot{position:relative;z-index:1;flex:0 0 12px;height:12px;margin:8px 0 0 8px;border:2px solid var(--muted);border-radius:50%;background:var(--bg);transition:transform .2s}
-.resume-timeline-item:is(:hover,:focus-within) .resume-timeline-dot{transform:scale(1.25)}
-.resume-timeline-event{display:grid;grid-template-columns:fit-content(55%) minmax(0,1fr);gap:8px;align-items:start;flex:1;min-width:0}
-.resume-timeline-event:not(:has(>.resume-timeline-date)){grid-template-columns:minmax(0,1fr)}
-.resume-timeline-date{
-  width:fit-content;
-  min-width:82px;
-  max-width:100%;
-  padding:4px 0;
-  border-radius:6px;
-  text-align:right;
-  font-size:14px;
-  line-height:20px;
-  color:var(--muted);
-  white-space:nowrap;
-  overflow:hidden;
-  text-overflow:ellipsis;
-}
-.resume-timeline-content{min-width:0}
 .about-content .resume-section{margin-top:40px}
 @media(max-width:767px){.home-section.resume-section{grid-template-columns:1fr;gap:20px}}
-@media(max-width:639px){
-  .resume-timeline{padding-left:0}
-  .resume-timeline-item{gap:12px}
-  .resume-timeline-event{grid-template-columns:minmax(0,1fr)}
-  .resume-timeline-date{min-width:0;padding:4px 8px;background:var(--soft);text-align:left}
-}
-/* Full date ranges need the stacked layout sooner inside the desktop side column. */
-@container resume (max-width:480px){
-  .resume-timeline-event{grid-template-columns:minmax(0,1fr)}
-  .resume-timeline-date{min-width:0;padding:4px 8px;background:var(--soft);text-align:left}
-}
 @media(prefers-reduced-motion:reduce){
-  .resume-education-card,.resume-organization a,.resume-timeline-dot{transition:none}
-  .resume-timeline-item:is(:hover,:focus-within) .resume-timeline-dot{transform:none}
+  .resume-card,.resume-organization a{transition:none}
 }

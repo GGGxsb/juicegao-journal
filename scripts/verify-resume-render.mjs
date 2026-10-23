@@ -20,13 +20,13 @@ try {
   const html=render({...empty,educationEntries:[entry('school-1','第一所学校',{description:'学习 **系统设计**，查看[项目详情](https://example.com/project)。'}),entry('school-2','第二所学校',{url:'',period:''})],experienceEntries:[entry('job-1','第一段履历',{title:'软件工程师',period:fullPeriod,url:'https://example.com/team',description:'- 项目研发\n- 团队协作'}),entry('job-2','第二段履历',{title:'',period:'至今',description:'',url:''})]});
   assert.ok(html.indexOf('school-1')<html.indexOf('school-2'));
   assert.ok(html.indexOf('job-1')<html.indexOf('job-2'));
-  assert.equal((html.match(/class="resume-timeline-item"/g)||[]).length,2);
+  assert.equal((html.match(/<article class="resume-card"/g)||[]).length,4);
   assert.ok(html.includes('软件工程师')&&html.includes('至今')&&html.includes('<ul>'));
   assert.ok(html.includes('href="https://example.com/school"')&&html.includes('rel="noopener noreferrer"'));
   assert.ok(html.includes('<strong>系统设计</strong>'));
-  console.log('PASS education cards and career timelines preserve field values, ordering, optional links and safe Markdown');
+  console.log('PASS education and career entries share cards and preserve field values, ordering, optional links and safe Markdown');
   assert.match(html,/<h3 class="resume-organization"><a class="resume-card-link" href="https:\/\/example\.com\/school"[^>]*>第一所学校<\/a><\/h3>/);
-  assert.equal((html.match(/class="resume-card-link"/g)||[]).length,1);
+  assert.equal((html.match(/class="resume-card-link"/g)||[]).length,2);
   assert.ok(html.includes('href="https://example.com/project"'));
   for(const anchor of html.matchAll(/<a\b[^>]*>[\s\S]*?<\/a>/g)) assert.ok(!anchor[0].slice(2).includes('<a '),'card and Markdown links must not be nested');
   assert.ok(html.includes(`title="${fullPeriod}">${fullPeriod}</p>`));

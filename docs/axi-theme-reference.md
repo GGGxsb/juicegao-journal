@@ -20,11 +20,11 @@
 | GitHub 卡片 | [GithubCard.astro](https://github.com/Axi404/Axi-Theme/blob/c6470e7308bad839489932601e2be08f9b542e70/src/components/advanced/GithubCard.astro) | 头像、owner/repo、简介、stars、forks、license、language |
 | 搜索与分享信息 | [BaseHead.astro](https://github.com/Axi404/Axi-Theme/blob/c6470e7308bad839489932601e2be08f9b542e70/src/components/BaseHead.astro) | 页面独立标题/摘要、canonical、Open Graph、Twitter 大图卡片及文章时间 |
 | 教育经历 | [首页](https://github.com/Axi404/Axi-Theme/blob/c6470e7308bad839489932601e2be08f9b542e70/src/pages/index.astro)、[Section.astro](https://github.com/Axi404/Axi-Theme/blob/c6470e7308bad839489932601e2be08f9b542e70/src/components/home/Section.astro)、[Card.astro](https://github.com/Axi404/Axi-Theme/blob/c6470e7308bad839489932601e2be08f9b542e70/src/components/user/Card.astro) | 桌面 144px 左标题、右卡片；12px 圆角、24px / 16px 内边距；18px 学校、14px 专业、12px 等宽日期及 4px 间距；填写网址后卡片整体可点击，200ms 边框和背景过渡；768px 以下上下排列 |
-| 履历 | [Timeline.astro](https://github.com/Axi404/Axi-Theme/blob/c6470e7308bad839489932601e2be08f9b542e70/src/components/user/Timeline.astro) | 12px 圆点与 4px 连接线、日期按内容宽度排列、悬停节点放大至 1.25 倍；640px 以下日期改为内容上方小标签 |
+| 履历 | [Card.astro](https://github.com/Axi404/Axi-Theme/blob/c6470e7308bad839489932601e2be08f9b542e70/src/components/user/Card.astro) | 与教育经历共用卡片组件，机构、职位、日期及 Markdown 说明在卡片内纵向排列；同样的边框、间距和悬停效果 |
 
 适配差异：本站保留 SQL 文章 ID 路由与后台 Markdown 写作，通过受限 directive 使用正文组件。点击粒子设有数量上限，跳过文本输入和后台；所有非必要动效尊重系统“减少动态效果”。标签页和折叠继续提供 ARIA 与键盘操作，GitHub API 失败时保留可访问的静态卡片。
 
-教育卡片采用标题链接覆盖卡片的方式，支持键盘聚焦，补充说明中的 Markdown 链接仍可独立访问，避免嵌套链接。履历使用仓库提供的 Timeline 组件样式（该版本默认首页只展示 Education）；本站保留条目间距，并在内容栏不足 480px 时提前将日期放到机构上方，让完整日期区间保持一行。资料仍来自现有 SQL 设置，首页与关于页共用组件。
+教育经历和履历共用同一卡片组件，采用标题链接覆盖卡片的方式，支持键盘聚焦，补充说明中的 Markdown 链接仍可独立访问，避免嵌套链接。履历按站主要求使用与教育经历相同的卡片布局，日期放在职位下方。资料仍来自现有 SQL 设置，首页与关于页共用组件。
 
 在渐隐封面基础上，本站增加自动提取封面主色：客户端缩小采样图片并忽略透明、近黑和近白区域，将主色混合到当前主题的背景与文字中，联动卡片悬停和键盘聚焦状态；读取失败保留默认配色。这是本站的扩展实现。后台独立的 SQL 自动备份、本机离线备份与版本冲突恢复，也属于本站写作流程的扩展。
 
