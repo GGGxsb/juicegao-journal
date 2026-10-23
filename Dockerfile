@@ -26,7 +26,7 @@ COPY --from=builder --chown=journal:journal /app/.next/static ./.next/static
 COPY --from=builder --chown=journal:journal /app/public ./public
 COPY --from=builder --chown=journal:journal /app/db/sqlite.mjs ./db/sqlite.mjs
 COPY --from=builder --chown=journal:journal /app/drizzle ./drizzle
-COPY --from=builder --chown=journal:journal /app/scripts/entrypoint.mjs /app/scripts/migrate.mjs /app/scripts/setup-admin.mjs ./scripts/
+COPY --from=builder --chown=journal:journal /app/scripts/entrypoint.mjs /app/scripts/migrate.mjs /app/scripts/setup-admin.mjs /app/scripts/diagnose-github-contributions.mjs ./scripts/
 USER journal
 EXPOSE 3000
 HEALTHCHECK --interval=30s --timeout=5s --start-period=30s --retries=3 \

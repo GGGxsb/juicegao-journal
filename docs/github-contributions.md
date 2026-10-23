@@ -26,6 +26,21 @@ sudo docker compose --env-file .env -f deploy/compose.nginx-https.yaml up -d --b
 
 令牌过期或撤销后，替换 `.env` 中的值并重新创建容器。
 
+## 无法加载时排查
+
+显示日历切换按钮只说明程序读取到了非空 Token 和格式有效的用户名，不代表 GitHub 已经验证它们。
+
+在服务器项目目录拉取更新，然后执行以下只读诊断。脚本在现有应用容器中读取已生效的配置，不输出 Token；不修改数据库，也不使用缓存。即使暂时没有重建镜像，也能运行：
+
+```sh
+git pull --ff-only
+sudo docker compose --env-file .env -f deploy/compose.nginx-https.yaml exec -T app node --input-type=module < scripts/diagnose-github-contributions.mjs
+```
+
+输出会区分容器未收到配置、Token 无效或过期、权限被拒、用户名不存在、GitHub 限流、网络或 DNS 故障、请求超时，以及数据格式不符。只需提供该诊断输出，不要提供 `.env` 内容、完整容器环境或 Token。
+
+编辑 `.env` 后，普通 `restart` 不会重新读取容器环境；执行原部署命令 `up -d --build`，或用 `up -d --force-recreate app` 重新创建应用容器。源码更新时使用前面的重建命令。失败结果会暂存一分钟，修正后等待一分钟再刷新。
+
 ## 更新和展示规则
 
 - 只请求 `contributionsCollection.contributionCalendar` 的每日日期、数量、等级和总量；不获取仓库内容或保存仓库详情。
