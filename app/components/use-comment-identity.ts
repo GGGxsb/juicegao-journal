@@ -9,17 +9,18 @@ async function request<T>(url: string, body?: unknown): Promise<T> {
   const data = await response.json(); if (!response.ok) throw new Error(data.error || '登录暂时不可用，请稍后重试。'); return data;
 }
 export function useCommentIdentity(postId: string, compose: Compose, restore: (value: Compose) => void) {
-  const [session, setSession] = useState<CommentSession>({ user: null, providers: [] });
-  const [selected, setSelected] = useState<'guest' | 'account'>('guest'), [loading, setLoading] = useState(true), [busy, setBusy] = useState(false);
+  const [session, setSession] = useState<CommentSession>({ owner: null, user: null, providers: [] });
+  const [selected, setSelected] = useState<'guest' | 'account' | 'owner'>('guest'), [loading, setLoading] = useState(true), [busy, setBusy] = useState(false);
   const [error, setError] = useState(''), [notice, setNotice] = useState(''), [revision, setRevision] = useState(0);
   const latest = useRef({ compose, restore }); latest.current = { compose, restore };
+  const resolved = useRef(false);
   useEffect(() => {
     try {
       const raw = sessionStorage.getItem(storageKey(postId));
       if (raw) {
         const value = JSON.parse(raw) as Compose;
         if (typeof value.nickname === 'string' && value.nickname.length <= 40 && typeof value.content === 'string' && value.content.length <= 3000 &&
-          (value.reply === null || (typeof value.reply?.id === 'string' && value.reply.id.length <= 128 && typeof value.reply.nickname === 'string' && value.reply.nickname.length <= 40))) latest.current.restore(value);
+          (value.reply === null || (typeof value.reply?.id === 'string' && value.reply.id.length <= 128 && typeof value.reply.nickname === 'string' && value.reply.nickname.length <= 60))) latest.current.restore(value);
         sessionStorage.removeItem(storageKey(postId));
       }
     } catch { /* An unavailable/invalid local draft does not prevent commenting. */ }
@@ -29,11 +30,17 @@ export function useCommentIdentity(postId: string, compose: Compose, restore: (v
     const url = new URL(window.location.href), result = url.searchParams.get('commentLogin');
     if (result) { url.searchParams.delete('commentLogin'); window.history.replaceState(window.history.state, '', url.pathname + url.search + url.hash); }
     void request<CommentSession>('/api/comment-auth/session').then(value => {
-      if (!active) return; setSession(value); setSelected(value.user ? 'account' : 'guest');
+      if (!active) return; const wasResolved=resolved.current; resolved.current=true; setSession(value); setSelected(current=>value.owner ? 'owner' : value.user ? (wasResolved&&current==='guest'?'guest':'account') : 'guest');
       if (result) setNotice(result === 'success' && value.user ? '已登录，可使用当前身份评论。' : result === 'cancelled' ? '已取消登录，可继续选择其他评论身份。' : '登录未完成，请重试或使用游客身份评论。');
-    }).catch(() => { if (active) { setError('登录身份暂时无法加载，可先使用游客评论。'); setSelected('guest'); } }).finally(() => { if (active) setLoading(false); });
+    }).catch(() => { if (active) { setError('登录身份暂时无法加载，可先使用游客评论。'); setSession(value=>({...value,owner:null,user:null})); setSelected('guest'); } }).finally(() => { if (active) setLoading(false); });
     return () => { active = false; };
   }, [postId, revision]);
+  useEffect(() => {
+    // Recognize login/logout performed in the admin tab when the reader returns.
+    const refresh = () => setRevision(value => value + 1);
+    window.addEventListener('focus', refresh);
+    return () => window.removeEventListener('focus', refresh);
+  }, []);
   async function login(provider: CommentLoginProvider) {
     if (busy) return; setBusy(true); setError(''); setNotice('');
     try {

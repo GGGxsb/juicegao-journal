@@ -9,3 +9,6 @@ export function CommentAvatar({ nickname, avatar }: { nickname: string; avatar: 
 export function CommentProviderBadge({ provider }: { provider: CommentProvider | '' }) {
   return <span className="comment-provider" data-provider={provider || 'guest'}>{provider ? COMMENT_PROVIDER_NAMES[provider] : '游客'}</span>;
 }
+export function CommentOwnerBadge() {
+  return <span className="comment-owner" title="已验证的网站站主"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M12 3 4 6v6c0 5 8 9 8 9s8-4 8-9V6l-8-3Z"/><path d="m8 12 3 3 5-6"/></svg>站主</span>;
+}

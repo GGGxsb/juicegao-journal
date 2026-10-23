@@ -8,4 +8,8 @@
 .comment-provider[data-provider=qq]{color:var(--accent)}
 .comment-identity-hint{color:var(--muted);font-size:11px;line-height:1.8;margin:0 0 14px}
 .comment-identities .comment-provider{margin-left:0}.admin-comment-meta .comment-avatar{width:27px;height:27px;font-size:11px}
+.comments-section .comment-owner,.comment-identities .comment-owner,.admin-comment-meta .comment-owner{display:inline-flex;align-items:center;gap:4px;vertical-align:middle;margin-left:8px;padding:2px 8px;font-size:11px;font-weight:650;line-height:1.6;border:1px solid color-mix(in srgb,var(--accent) 45%,var(--line));border-radius:20px;color:var(--accent);background:color-mix(in srgb,var(--accent) 12%,var(--bg))}
+.comment-owner svg{flex-shrink:0}.comment-identities .comment-owner{margin-left:0}.comment-item.is-owner{padding:18px;margin:18px 0;border:1px solid color-mix(in srgb,var(--accent) 30%,var(--line));border-left:3px solid var(--accent);border-radius:9px;background:color-mix(in srgb,var(--accent) 5%,var(--bg))}.comment-item.is-owner strong{color:var(--accent)}
+.comment-identities .comment-owner-login{margin-left:auto;font-size:11px;color:var(--muted)}.comment-identities .comment-owner-login:hover{color:var(--accent)}
+.admin-comment-meta .comment-owner{color:#3f6f99;background:#e9f2fc;border-color:#b8cfe5}
 @media(max-width:560px){.comment-identities{gap:7px}.comment-identities .comment-logout{margin-left:0}}

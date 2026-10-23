@@ -15,7 +15,7 @@ export async function POST(request: Request, context: Context) {
   return apiRoute(async () => {
     requireSameOrigin(request);
     const { id } = await context.params;
-    await submitComment(request, id, await readJson(request));
-    return json({ message: "评论已提交，审核后显示。" }, 201);
+    const result = await submitComment(request, id, await readJson(request));
+    return json({ message: result.published ? "评论已发布。" : "评论已提交，审核后显示。", published: result.published }, 201);
   });
 }

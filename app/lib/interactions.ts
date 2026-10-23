@@ -5,6 +5,8 @@ import { clientAddress } from "./request-security";
 import { ApiError } from "./errors";
 import { authorizeMutation, requireAdmin, requireSameOrigin } from "./server";
 import { commentAccount } from './comment-auth';
+import { getAdminSession } from './admin-auth';
+import { ownerCommentProfile } from './comment-owner';
 import type {
   AdminComment, AdminCommentListResult, CommentCounts, CommentListResult,
   CommentStatus, InteractionPagination, LikeState, PublicComment,
@@ -16,7 +18,7 @@ const plainText = (max: number) => z.string().trim().min(1, "请填写内容。"
   .refine(value => !/[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f]/.test(value), "内容含有无效字符。");
 const commentInput = z.object({
   nickname: plainText(40).optional(),
-  identity: z.enum(['guest', 'account']).default('guest'),
+  identity: z.enum(['guest', 'account', 'owner']).default('guest'),
   content: plainText(3000),
   parentId: z.string().trim().min(1).max(128).nullable().optional(),
 }).strict();
@@ -121,27 +123,31 @@ export async function listPublicComments(postId: string, params: URLSearchParams
   return { comments: results.map(publicComment), pagination: paging };
 }
 
-export async function submitComment(request: Request, postId: string, input: unknown): Promise<void> {
+export async function submitComment(request: Request, postId: string, input: unknown): Promise<{ published: boolean }> {
   requireSameOrigin(request);
   const value = parse(commentInput, input), parentId = value.parentId || null;
-  const account = value.identity === 'account' ? await commentAccount(request) : null;
-  if (value.identity === 'account' && !account) throw new ApiError(401, '登录已过期，请重新选择登录身份，或改用游客评论。');
-  if (!account && !value.nickname) throw new ApiError(400, '请填写昵称。');
+  const isOwner = (await getAdminSession(request)).isAdmin;
+  if (value.identity === 'owner' && !isOwner) throw new ApiError(401, '站主登录已过期，请重新登录后台。');
+  const owner = isOwner ? await ownerCommentProfile() : null;
+  const account = !owner && value.identity === 'account' ? await commentAccount(request) : null;
+  if (!owner && value.identity === 'account' && !account) throw new ApiError(401, '登录已过期，请重新选择登录身份，或改用游客评论。');
+  if (!owner && !account && !value.nickname) throw new ApiError(400, '请填写昵称。');
   await requirePublished(postId);
-  await throttle(request, "comments", 5);
+  if (!owner) await throttle(request, "comments", 5);
   // Article visibility and reply eligibility are checked in the insert itself,
   // so a moderation/unpublish operation cannot race the earlier validation.
   const result = await env.DB.prepare(`INSERT INTO comments
     (id, post_id, nickname, content, parent_id, is_admin, status, created_at, author_id, provider, avatar)
-    SELECT ?, p.id, ?, ?, ?, 0, 'pending', ?, ?, ?, ? FROM posts p
+    SELECT ?, p.id, ?, ?, ?, ?, ?, ?, ?, ?, ? FROM posts p
     WHERE p.id = ? AND p.status = 'published' AND
     (? IS NULL OR EXISTS(SELECT 1 FROM comments parent
       WHERE parent.id = ? AND parent.post_id = p.id AND parent.status = 'approved'))`)
-    .bind(randomUUID(), account?.nickname || value.nickname!, value.content, parentId, new Date().toISOString(), account?.id || null, account?.provider || '', account?.avatar || '', postId, parentId, parentId).run();
+    .bind(randomUUID(), owner?.nickname || account?.nickname || value.nickname!, value.content, parentId, owner ? 1 : 0, owner ? 'approved' : 'pending', new Date().toISOString(), account?.id || null, account?.provider || '', owner?.avatar || account?.avatar || '', postId, parentId, parentId).run();
   if (result.meta.changes !== 1) {
     await requirePublished(postId);
     throw new ApiError(400, "回复的评论不存在或尚未通过审核。");
   }
+  return { published: Boolean(owner) };
 }
 
 export async function getPostLikes(request: Request, postId: string): Promise<LikeState> {
@@ -224,6 +230,7 @@ export async function deleteComment(request: Request, id: string): Promise<void>
 
 export async function replyToComment(request: Request, targetId: string, input: unknown): Promise<AdminComment> {
   await authorizeMutation(request);
+  const owner = await ownerCommentProfile();
   const value = parse(replyInput, input), database = env.DB;
   const target = await database.prepare(`SELECT c.status, p.status AS postStatus
     FROM comments c JOIN posts p ON p.id = c.post_id WHERE c.id = ?`)
@@ -232,11 +239,11 @@ export async function replyToComment(request: Request, targetId: string, input: 
   if (target.status !== "approved") throw new ApiError(409, "请先通过这条评论的审核，再回复。");
   const id = randomUUID();
   const results = await database.batch<unknown>([
-    database.prepare(`INSERT INTO comments (id, post_id, nickname, content, parent_id, is_admin, status, created_at)
-      SELECT ?, c.post_id, COALESCE((SELECT name FROM site_settings WHERE id = 'site'), 'JuiceGao'), ?, c.id, 1, 'approved', ?
+    database.prepare(`INSERT INTO comments (id, post_id, nickname, content, parent_id, is_admin, status, created_at, avatar)
+      SELECT ?, c.post_id, ?, ?, c.id, 1, 'approved', ?, ?
       FROM comments c JOIN posts p ON p.id = c.post_id
       WHERE c.id = ? AND c.status = 'approved' AND p.status = 'published'`)
-      .bind(id, value.content, new Date().toISOString(), targetId),
+      .bind(id, owner.nickname, value.content, new Date().toISOString(), owner.avatar, targetId),
     database.prepare(`SELECT ${adminColumns} ${commentJoins} WHERE c.id = ?`).bind(id),
   ]);
   const row = results[1].results[0] as AdminCommentRow | undefined;

@@ -3,6 +3,8 @@ import { z } from 'zod';
 import { env } from './platform';
 import { ApiError } from './errors';
 import { requireSameOrigin } from './server';
+import { getAdminSession } from './admin-auth';
+import { ownerCommentProfile } from './comment-owner';
 import { assertSafeLoginTransport, clientAddress, isLoopbackHost, requestOrigin } from './request-security';
 import { authorizationUrl, callbackPath, enabledCommentProviders, exchangeCommentProfile, providerConfig, providerId } from './comment-oauth-providers';
 import type { CommentIdentity, CommentSession } from './comment-identity-types';
@@ -37,8 +39,9 @@ export async function commentAccount(request: Request): Promise<Account | null> 
     .bind(digest(supplied), Date.now()).first<Account>();
 }
 export async function commentSession(request: Request): Promise<CommentSession> {
+  if ((await getAdminSession(request)).isAdmin) return { owner: await ownerCommentProfile(), user: null, providers: enabledCommentProviders() };
   const account = await commentAccount(request);
-  return { user: account ? { nickname: account.nickname, avatar: account.avatar, provider: account.provider } : null, providers: enabledCommentProviders() };
+  return { owner: null, user: account ? { nickname: account.nickname, avatar: account.avatar, provider: account.provider } : null, providers: enabledCommentProviders() };
 }
 async function throttle(request: Request) {
   const secret = env.ADMIN_SETUP_TOKEN_HASH || '';

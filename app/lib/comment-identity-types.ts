@@ -4,7 +4,9 @@ export type CommentLoginProvider = typeof COMMENT_PROVIDERS[number];
 export type CommentProvider = 'qq' | 'github';
 export const COMMENT_PROVIDER_NAMES: Record<CommentProvider, string> = { qq: 'QQ', github: 'GitHub' };
 export interface CommentIdentity { nickname: string; avatar: string; provider: CommentLoginProvider }
+export interface CommentOwnerIdentity { nickname: string; avatar: string }
 export interface CommentSession {
   user: CommentIdentity | null;
+  owner: CommentOwnerIdentity | null;
   providers: { id: CommentLoginProvider; name: string }[];
 }
