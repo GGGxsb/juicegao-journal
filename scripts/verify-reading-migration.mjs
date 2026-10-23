@@ -23,7 +23,8 @@ try {
   database.prepare('INSERT INTO comments(id,post_id,nickname,content,status,created_at) VALUES (?,?,?,?,?,?)').run('existing-comment', id, '访客', '原有评论', 'approved', now);
   database.prepare('INSERT INTO post_likes(post_id,visitor_hash,created_at) VALUES (?,?,?)').run(id, 'fixture-visitor-hash', now);
   const before = database.prepare('SELECT * FROM posts WHERE id=?').get(id);
-  const upgraded = migrateDatabase();
+  copyFileSync('drizzle/0004_collections.sql', path.join(legacy, '0004_collections.sql'));
+  const upgraded = migrateDatabase(legacy);
   assert.equal(upgraded.applied, 1);
   const after = database.prepare('SELECT * FROM posts WHERE id=?').get(id);
   for (const [key, value] of Object.entries(before)) assert.equal(after[key], value, `Upgrade changed ${key}.`);
@@ -36,7 +37,7 @@ try {
   database.prepare('DELETE FROM collections WHERE id=?').run('fixture-collection');
   assert.equal(database.prepare('SELECT collection_id FROM posts WHERE id=?').get(id).collection_id, null);
   assert.equal(database.prepare('SELECT count(*) n FROM posts').get().n, 1);
-  assert.equal(migrateDatabase().applied, 0, 'A second startup must not apply the migration again.');
+  assert.equal(migrateDatabase(legacy).applied, 0, 'A second startup must not apply the migration again.');
   console.log('PASS collection migration preserves existing article IDs, content, comments and likes; collection deletion keeps articles; repeated startup is safe.');
 } finally {
   database?.close();

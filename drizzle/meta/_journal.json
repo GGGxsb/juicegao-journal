@@ -29,6 +29,20 @@
       "when": 1792674000000,
       "tag": "0003_home_profile",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "6",
+      "when": 1792681200000,
+      "tag": "0004_collections",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "6",
+      "when": 1792684800000,
+      "tag": "0005_post_categories",
+      "breakpoints": true
     }
   ]
 }

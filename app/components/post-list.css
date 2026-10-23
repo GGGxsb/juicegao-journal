@@ -3,6 +3,9 @@
 .post-list .post-item,.post-list .post-item:last-child{border:1px solid var(--line);border-radius:16px;padding:20px;transition:background-color .2s ease-in-out,border-color .2s}
 .post-list .post-item:hover,.post-list .post-item:focus-within{background:var(--soft)}
 .post-summary{flex:1;min-width:0;overflow-wrap:anywhere}
+.post-item-tags{display:flex;flex-wrap:wrap;gap:6px 12px;margin-top:12px;font-size:12px;color:var(--muted)}
+.post-item-tags a{overflow-wrap:anywhere;max-width:100%}
+.post-item-tags a:hover{color:var(--accent)}
 .post-cover{display:block;flex:0 0 176px;width:176px;height:112px;object-fit:cover;border-radius:6px;background:var(--soft)}
 @media(max-width:560px){
   .post-list .post-item>a{gap:14px}

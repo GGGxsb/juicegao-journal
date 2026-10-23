@@ -6,8 +6,9 @@ import { getDb } from "@/db";
 import { collections, media, posts, siteSettings } from "@/db/schema";
 import { getAdminSession, requireAdmin, type AdminPrincipal } from "./admin-auth";
 import { ApiError } from "./errors";
+import { DEFAULT_POST_CATEGORY, POST_CATEGORIES, type PostCategory } from "./post-categories";
 export { getAdminSession, requireAdmin, ApiError };
-import type { Post, PostCollection, PostInput, PostKind, PostStatistics, PostStatus, SiteSettings } from "./types";
+import type { Post, PostCollection, PostInput, PostKind, PostStatus, SiteSettings } from "./types";
 
 export const DEFAULT_SETTINGS: SiteSettings = {
   name: "JuiceGao",
@@ -39,7 +40,7 @@ export async function authorizeMutation(request: Request): Promise<AdminPrincipa
 export interface PostQueryOptions {
   scope?: "published" | "all";
   kind?: PostKind;
-  category?: string;
+  category?: PostCategory;
   tag?: string;
   collectionId?: string;
   q?: string;
@@ -51,8 +52,8 @@ export interface PostQueryOptions {
 const postQuerySchema = z.object({
   scope: z.enum(["published", "all"]).default("published"),
   kind: z.enum(["article", "note"]).optional(),
-  category: z.string().trim().min(1).max(60).optional(),
-  tag: z.string().trim().min(1).max(40).optional(),
+  category: z.enum(POST_CATEGORIES).optional(),
+  tag: z.string().trim().min(1).max(60).optional(),
   collectionId: z.string().uuid().optional(),
   q: z.string().trim().max(200).optional(),
   status: z.enum(["draft", "published"]).optional(),
@@ -89,21 +90,15 @@ for (const character of whitespaceCharacters) {
 
 async function postOverview(scope: "published" | "all"): Promise<Pick<PostCollection, "stats" | "categories">> {
   const db = getDb();
-  const [statistics, categoryRows] = await Promise.all([
-    db.select({
+  const [stats] = await db.select({
       articles: sql<number>`coalesce(sum(case when ${posts.kind} = 'article' then 1 else 0 end), 0)`.mapWith(Number),
       notes: sql<number>`coalesce(sum(case when ${posts.kind} = 'note' then 1 else 0 end), 0)`.mapWith(Number),
       words: sql<number>`coalesce(sum(length(${contentWithoutWhitespace})), 0)`.mapWith(Number),
       total: count(),
       published: sql<number>`coalesce(sum(case when ${posts.status} = 'published' then 1 else 0 end), 0)`.mapWith(Number),
       drafts: sql<number>`coalesce(sum(case when ${posts.status} = 'draft' then 1 else 0 end), 0)`.mapWith(Number),
-    }).from(posts).where(scope === "all" ? undefined : eq(posts.status, "published")),
-    db.selectDistinct({ category: posts.category }).from(posts)
-      .where(and(eq(posts.status, "published"), eq(posts.kind, "article")))
-      .orderBy(asc(posts.category)),
-  ]);
-  const stats: PostStatistics = statistics[0];
-  return { stats, categories: categoryRows.map((row) => row.category).filter(Boolean) };
+    }).from(posts).where(scope === "all" ? undefined : eq(posts.status, "published"));
+  return { stats, categories: [...POST_CATEGORIES] };
 }
 
 /** Global statistics and navigation categories, without loading article bodies. */
@@ -188,8 +183,9 @@ const postSchema = z.object({
   title: z.string().trim().min(1, "请输入标题。").max(180, "标题最多 180 字。"),
   excerpt: z.string().trim().max(1000).default(""),
   content: z.string().max(500_000, "正文过长，请缩短至 50 万字以内。").default(""),
-  category: z.string().trim().min(1).max(60).default("随笔"),
-  tags: z.array(z.string().trim().min(1).max(40)).max(20).default([]),
+  category: z.enum(POST_CATEGORIES).default(DEFAULT_POST_CATEGORY),
+  // A migrated legacy category can add one 60-character tag to the old 20.
+  tags: z.array(z.string().trim().min(1).max(60)).max(32).default([]),
   kind: z.enum(["article", "note"]).default("article"),
   status: z.enum(["draft", "published"]).default("draft"),
   coverImage: imageUrlSchema.default(""),

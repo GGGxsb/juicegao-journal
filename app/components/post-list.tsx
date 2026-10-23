@@ -1,5 +1,5 @@
 import type { Post } from '../lib/types';
-import { postHref } from '../lib/post-links';
+import { postHref, tagHref } from '../lib/post-links';
 import './post-list.css';
 
 type PostListProps = {
@@ -26,5 +26,6 @@ export default function PostList({ posts }: PostListProps) {
       </div>
       {post.coverImage && <img className="post-cover" src={post.coverImage} alt="" width={176} height={112} loading="lazy" decoding="async" />}
     </a>
+    {!!post.tags.length&&<div className="post-item-tags" aria-label="文章标签">{post.tags.map(tag=><a href={tagHref(tag)} key={tag}>#{tag}</a>)}</div>}
   </article>)}</div>;
 }

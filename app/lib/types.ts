@@ -1,3 +1,5 @@
+import type { PostCategory } from "./post-categories";
+
 export type PostKind = "article" | "note";
 export type PostStatus = "draft" | "published";
 
@@ -6,7 +8,7 @@ export interface Post {
   title: string;
   excerpt: string;
   content: string;
-  category: string;
+  category: PostCategory;
   tags: string[];
   kind: PostKind;
   status: PostStatus;

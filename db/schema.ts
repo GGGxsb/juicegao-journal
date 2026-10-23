@@ -1,4 +1,6 @@
-import { index, integer, primaryKey, sqliteTable, text, uniqueIndex, type AnySQLiteColumn } from "drizzle-orm/sqlite-core";
+import { sql } from "drizzle-orm";
+import { check, index, integer, primaryKey, sqliteTable, text, uniqueIndex, type AnySQLiteColumn } from "drizzle-orm/sqlite-core";
+import { DEFAULT_POST_CATEGORY, POST_CATEGORIES } from "../app/lib/post-categories";
 
 export const collections = sqliteTable("collections", {
   id: text("id").primaryKey(),
@@ -15,7 +17,7 @@ export const posts = sqliteTable("posts", {
   slug: text("slug").notNull(),
   excerpt: text("excerpt").notNull().default(""),
   content: text("content").notNull().default(""),
-  category: text("category").notNull().default("随笔"),
+  category: text("category", { enum: POST_CATEGORIES }).notNull().default(DEFAULT_POST_CATEGORY),
   tags: text("tags", { mode: "json" }).$type<string[]>().notNull().default([]),
   kind: text("kind", { enum: ["article", "note"] }).notNull().default("article"),
   status: text("status", { enum: ["draft", "published"] }).notNull().default("draft"),
@@ -26,6 +28,7 @@ export const posts = sqliteTable("posts", {
   createdAt: text("created_at").notNull(),
   updatedAt: text("updated_at").notNull(),
 }, (table) => [
+  check("posts_category_check", sql`${table.category} IN ('Daily Life', 'Technical')`),
   uniqueIndex("posts_slug_unique").on(table.slug),
   index("posts_status_published_idx").on(table.status, table.publishedAt),
   index("posts_collection_order_idx").on(table.collectionId, table.status, table.collectionOrder, table.publishedAt, table.id),

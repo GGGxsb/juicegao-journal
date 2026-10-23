@@ -97,7 +97,7 @@ const draftPayload = {
   title: `中文草稿-${runId}`,
   excerpt: "Disposable local integration verification content.",
   content: `## Verification\n\n${runId} body marker.\n\n**Markdown** remains readable.`,
-  category: "测试", tags: ["local-qa"], kind: "article", status: "draft", coverImage: "",
+  category: "Technical", tags: ["local-qa"], kind: "article", status: "draft", coverImage: "",
 };
 
 try {

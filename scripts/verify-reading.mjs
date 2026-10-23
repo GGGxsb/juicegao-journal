@@ -34,7 +34,7 @@ async function html(route) {
 }
 async function createPost(fields) {
   const result = await json(await request('/api/posts', { auth: true, method: 'POST', body: {
-    title: `${runId} published`, content, excerpt: '用于本机验证阅读功能。', category: runId,
+    title: `${runId} published`, content, excerpt: '用于本机验证阅读功能。', category: 'Daily Life',
     tags: [runId], kind: 'article', status: 'published', coverImage: '', ...fields,
   } }), 201);
   postIds.add(result.post.id); return result.post;
