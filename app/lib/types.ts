@@ -70,6 +70,7 @@ export type SettingsInput = Omit<SiteSettings, "educationEntries" | "experienceE
 
 export interface HomeOverview {
   today: string;
+  github?: { username: string | null; configured: boolean };
   firstPublishedAt: string | null;
   lastUpdatedAt: string | null;
   activity: { date: string; count: number }[];

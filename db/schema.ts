@@ -3,6 +3,15 @@ import { check, index, integer, primaryKey, sqliteTable, text, uniqueIndex, type
 import { DEFAULT_POST_CATEGORY, POST_CATEGORIES } from "../app/lib/post-categories";
 import type { ResumeEntry } from "../app/lib/types";
 import type { EditorValue } from "../app/lib/draft-state";
+import type { ContributionCalendar } from "../app/lib/github-contribution-types";
+
+export const githubContributionCache = sqliteTable("github_contribution_cache", {
+  username: text("username").primaryKey(),
+  credentialHash: text("credential_hash").notNull(),
+  calendar: text("calendar", {mode:"json"}).$type<ContributionCalendar>(),
+  fetchedAt: integer("fetched_at").notNull().default(0),
+  retryAfter: integer("retry_after").notNull().default(0),
+}, table => [check("github_contribution_cache_calendar_object", sql`${table.calendar} IS NULL OR (json_valid(${table.calendar}) AND json_type(${table.calendar}) = 'object')`)]);
 
 export const posts = sqliteTable("posts", {
   id: text("id").primaryKey(),

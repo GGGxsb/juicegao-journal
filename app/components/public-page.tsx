@@ -8,7 +8,8 @@ type PublicView = 'home' | 'articles' | 'notes' | 'archive' | 'about';
 
 export default async function PublicPage({ view, searchParams }: { view: PublicView; searchParams?: PublicSearchParams }) {
   if (view === 'home' || view === 'about') {
-    const [settings, overview, home] = await Promise.all([getSettings(), getPostOverview(), view === 'home' ? getHomeOverview() : undefined]);
+    const [settings, overview] = await Promise.all([getSettings(), getPostOverview()]);
+    const home = view === 'home' ? await getHomeOverview(settings.github) : undefined;
     return <Journal settings={settings} posts={[]} view={view} home={home} {...overview} />;
   }
 

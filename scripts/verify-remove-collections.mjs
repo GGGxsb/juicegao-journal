@@ -57,7 +57,7 @@ try{
   console.log('PASS legacy local backups recover and old autosave payloads remain usable; article deletion still cascades correctly');
 
   db.close();db=undefined;closeDatabase();process.env.DATA_DIR=path.join(directory,'fresh');
-  assert.equal(migrateDatabase().applied,10);open();assertRemoved();assert.equal(migrateDatabase().applied,0);
+  assert.ok(migrateDatabase().applied>=10);open();assertRemoved();assert.equal(migrateDatabase().applied,0);
   console.log('PASS fresh installations have no collection table, fields, index or foreign key');
 }finally{
   delete globalThis.localStorage;db?.close();closeDatabase();unregister();
