@@ -14,7 +14,7 @@ export async function getWritingDraft(owner:string,documentKey:string):Promise<W
   return row?record(row):null;
 }
 export async function listWritingDrafts(owner:string):Promise<WritingDraftSummary[]> {
-  const {results}=await env.DB.prepare("SELECT document_key AS key,json_extract(editor,'$.title') AS title,post_id AS postId,updated_at AS updatedAt FROM writing_drafts WHERE owner_id=? ORDER BY updated_at DESC LIMIT 100").bind(owner).all<WritingDraftSummary>();return results;
+  const {results}=await env.DB.prepare("SELECT document_key AS key,json_extract(editor,'$.title') AS title,post_id AS postId,updated_at AS updatedAt,revision FROM writing_drafts WHERE owner_id=? ORDER BY updated_at DESC LIMIT 100").bind(owner).all<WritingDraftSummary>();return results;
 }
 export async function saveWritingDraft(owner:string,documentKey:string,input:unknown):Promise<WritingDraft> {
   const document=key(documentKey),parsed=saveSchema.safeParse(input);

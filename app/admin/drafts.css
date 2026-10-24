@@ -2,7 +2,12 @@
 .admin-draft-list h2,.admin-draft-recovery h2{font-size:14px;margin:0 0 7px;font-weight:600}
 .admin-draft-list p,.admin-draft-recovery p{font-size:12px;line-height:1.8;margin:0 0 12px}
 .admin-draft-list>div{display:flex;flex-wrap:wrap;gap:9px}
-.admin-draft-list>div>button{text-align:left;border:1px solid #dce8f1;background:white;border-radius:6px;padding:10px 12px;max-width:100%}
+.admin-draft-item{display:flex;align-items:center;gap:12px;max-width:100%;border:1px solid #dce8f1;background:white;border-radius:6px;padding:10px 12px}
+.admin-draft-open{text-align:left;padding:0;min-width:0;flex:1}
+.admin-draft-delete{flex-shrink:0;padding:6px 0;font-size:11px;color:#ba6a6a}
+.admin-draft-delete:hover{color:#a24141}
+.admin-draft-error{color:#a24141!important;margin-top:12px!important;margin-bottom:0!important}
+.admin-draft-error button{font-size:12px;text-decoration:underline;text-underline-offset:3px;margin-left:10px}
 .admin-draft-list strong{display:block;font-size:12px;overflow-wrap:anywhere;font-weight:500}.admin-draft-list span{display:block;font-size:10px;color:#90a4b6;margin-top:5px}
 .admin-draft-recovery>div{display:flex;flex-wrap:wrap;gap:10px}
 .admin-save-status{max-width:65%;text-align:right;line-height:1.7;overflow-wrap:anywhere}

@@ -110,7 +110,7 @@ export default function CityMap({posts}: {posts: MapPost[]}) {
     const saved = savedView.current;
     const first = data.cities.find(city => cityArticles.has(city.id));
     const provinceId = saved?.provinceId && provincesById.has(saved.provinceId) ? saved.provinceId : '';
-    setSelectedId(saved && citiesById.has(saved.cityId) ? saved.cityId : provinceId ? '' : first?.id || '');
+    setSelectedId(saved ? citiesById.has(saved.cityId) ? saved.cityId : '' : first?.id || '');
     setSelectedProvinceId(provinceId);
     if (saved) moveTo(saved.transform, {animate: false});
     setRestored(true);
@@ -164,6 +164,13 @@ export default function CityMap({posts}: {posts: MapPost[]}) {
     setPanelOpen(true); setTooltip(null); setSearchOpen(false); setQuery('');
     if (listRef.current) listRef.current.scrollTop = 0;
   };
+  const clearSelection = () => {
+    setSelectedId(''); setSelectedProvinceId(''); setTooltip(null); setSearchOpen(false);
+    if (listRef.current) listRef.current.scrollTop = 0;
+    try {sessionStorage.setItem(STORAGE_KEY, JSON.stringify({cityId:'',provinceId:'',transform:viewRef.current,listScroll:0}));} catch { /* Optional state persistence. */ }
+    const focused = document.activeElement;
+    if (focused instanceof SVGElement && svgRef.current?.contains(focused)) focused.blur();
+  };
   const chooseCity = (id: string, focusMap = false) => {
     const city = citiesById.get(id);
     if (!city || !data) return;
@@ -215,6 +222,7 @@ export default function CityMap({posts}: {posts: MapPost[]}) {
     if (!current.moved) {
       if (current.cityId) chooseCity(current.cityId);
       else if (current.provinceId) chooseProvince(current.provinceId);
+      else clearSelection();
     }
   };
 

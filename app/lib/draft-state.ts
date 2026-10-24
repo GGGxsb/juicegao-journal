@@ -22,5 +22,5 @@ export const editorValueSchema=z.preprocess(value=>{
 },currentEditorValueSchema);
 export type EditorValue=z.infer<typeof editorValueSchema>;
 export interface WritingDraft {key:string;editor:EditorValue;baseUpdatedAt:string;revision:number;updatedAt:string}
-export interface WritingDraftSummary {key:string;title:string;postId:string|null;updatedAt:string}
+export interface WritingDraftSummary {key:string;title:string;postId:string|null;updatedAt:string;revision:number}
 export const draftKey=(editor:Pick<EditorValue,'id'>)=>editor.id||'new';
