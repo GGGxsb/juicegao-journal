@@ -131,7 +131,7 @@ export default function CityMap({posts}: {posts: MapPost[]}) {
   }, [persist, view]);
 
   // Different entry/exit scales prevent layer flicker near the threshold.
-  useEffect(() => {setDetailMode(current => view.k >= 2.2 ? true : view.k <= 1.8 ? false : current);}, [view.k]);
+  useEffect(() => {setDetailMode(current => view.k >= 3 ? true : view.k <= 2.5 ? false : current);}, [view.k]);
   useEffect(() => {
     const svg = svgRef.current;
     if (!svg || !data) return;
