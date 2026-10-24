@@ -11,6 +11,8 @@ node_modules
 .aws
 .ssh
 data
+!public/data
+!public/data/**
 uploads
 backups
 **/certs

@@ -7,8 +7,9 @@ import { media, posts, siteSettings } from "@/db/schema";
 import { getAdminSession, requireAdmin, type AdminPrincipal } from "./admin-auth";
 import { ApiError } from "./errors";
 import { DEFAULT_POST_CATEGORY, POST_CATEGORIES, type PostCategory } from "./post-categories";
+import { cityIdsSchema } from "./draft-state";
 export { getAdminSession, requireAdmin, ApiError };
-import type { Post, PostCollection, PostInput, PostStatus, SettingsInput, SiteSettings } from "./types";
+import type { MapPost, Post, PostCollection, PostInput, PostStatus, SettingsInput, SiteSettings } from "./types";
 
 export const DEFAULT_SETTINGS: SiteSettings = {
   name: "JuiceGao",
@@ -140,6 +141,20 @@ export async function queryPosts(options: PostQueryOptions = {}): Promise<PostCo
   return { posts: pagePosts, pagination: { page, pageSize: value.pageSize, total, totalPages }, ...overview };
 }
 
+/** Every published article is available to the map without transferring bodies. */
+export async function getMapPosts(): Promise<MapPost[]> {
+  return getDb().select({
+    id: posts.id,
+    title: posts.title,
+    excerpt: posts.excerpt,
+    tags: posts.tags,
+    cityIds: posts.cityIds,
+    publishedAt: posts.publishedAt,
+    coverImage: posts.coverImage,
+  }).from(posts).where(eq(posts.status, "published"))
+    .orderBy(desc(posts.publishedAt), desc(posts.updatedAt), desc(posts.id));
+}
+
 /** Public detail URLs resolve exclusively through the persisted SQL primary key. */
 export async function getPublishedPost(id: string): Promise<Post | null> {
   const [post] = await getDb().select().from(posts)
@@ -174,6 +189,8 @@ const postSchema = z.object({
   category: z.enum(POST_CATEGORIES).default(DEFAULT_POST_CATEGORY),
   // A migrated legacy category can add one 60-character tag to the old 20.
   tags: z.array(z.string().trim().min(1).max(60)).max(32).default([]),
+  // Older clients must not erase city assignments when saving another field.
+  cityIds: cityIdsSchema.optional(),
   status: z.enum(["draft", "published"]).default("draft"),
   coverImage: imageUrlSchema.default(""),
 }).strict();
@@ -245,7 +262,7 @@ export async function createPost(input: PostInput): Promise<Post> {
   const now = new Date().toISOString();
   const id = crypto.randomUUID();
   const [post] = await getDb().insert(posts).values({
-    ...input, id,
+    ...input, cityIds: input.cityIds ?? [], id,
     // Keep the legacy NOT NULL column populated without deriving a route from
     // the title. Existing databases need no migration or rewritten records.
     slug: id, createdAt: now, updatedAt: now,

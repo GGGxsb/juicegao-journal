@@ -9,6 +9,7 @@ export interface Post {
   content: string;
   category: PostCategory;
   tags: string[];
+  cityIds: string[];
   status: PostStatus;
   coverImage: string;
   publishedAt: string;
@@ -72,7 +73,11 @@ export interface HomeOverview {
   activity: { date: string; count: number }[];
 }
 
-export type PostInput = Pick<Post, "title" | "excerpt" | "content" | "category" | "tags" | "status" | "coverImage">;
+/** An omitted cityIds preserves saved assignments; an explicit [] clears them. */
+export type PostInput = Pick<Post, "title" | "excerpt" | "content" | "category" | "tags" | "status" | "coverImage"> &
+  Partial<Pick<Post, "cityIds">>;
+
+export type MapPost = Pick<Post, "id" | "title" | "excerpt" | "tags" | "cityIds" | "publishedAt" | "coverImage">;
 
 export interface TagSummary {
   tag: string;

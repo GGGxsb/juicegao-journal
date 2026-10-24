@@ -22,6 +22,7 @@ export const posts = sqliteTable("posts", {
   content: text("content").notNull().default(""),
   category: text("category", { enum: POST_CATEGORIES }).notNull().default(DEFAULT_POST_CATEGORY),
   tags: text("tags", { mode: "json" }).$type<string[]>().notNull().default([]),
+  cityIds: text("city_ids", { mode: "json" }).$type<string[]>().notNull().default([]),
   status: text("status", { enum: ["draft", "published"] }).notNull().default("draft"),
   coverImage: text("cover_image").notNull().default(""),
   publishedAt: text("published_at").notNull().default(""),
@@ -29,6 +30,7 @@ export const posts = sqliteTable("posts", {
   updatedAt: text("updated_at").notNull(),
 }, (table) => [
   check("posts_category_check", sql`${table.category} IN ('Daily Life', 'Technical')`),
+  check("posts_city_ids_array", sql`json_valid(${table.cityIds}) AND json_type(${table.cityIds}) = 'array'`),
   uniqueIndex("posts_slug_unique").on(table.slug),
   index("posts_status_published_idx").on(table.status, table.publishedAt),
   index("posts_category_navigation_idx").on(table.category, table.status, table.publishedAt, table.id),

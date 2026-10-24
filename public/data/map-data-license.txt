@@ -1,0 +1,69 @@
+中国城市文章地图 — 地图数据许可与来源
+
+使用数据包：cnmaps-data 1.1.2
+项目：https://github.com/cnmetlab/cnmaps-data
+数据包：https://pypi.org/project/cnmaps-data/1.1.2/
+来源说明：中国省、市、县边界来自高德（Amap）；包内 README 的参考版本为 GaryBikini/ChinaAdminDivisonSHP v2.0 (2021)，DOI https://doi.org/10.5281/zenodo.4167299。
+上游项目：https://github.com/GaryBikini/ChinaAdminDivisonSHP
+本网页派生处理：Albers 投影、在 1000×800 画布上轻度简化、南海诸岛插图、保留原始六位 adcode；直辖市使用全市标识。未改画行政区几何。
+获取日期：2026-10-24。数据包未声明一个统一的现行行政区划时点；这里是文章浏览索引，不是 2026 年最新行政区划表。
+覆盖：391 个城市级浏览单元，含大陆地级行政区、省直管县市、四直辖市、香港和澳门，以及台湾22县市。新疆按来源包含 10 个兵团城市，来源后新增城市尚未加入。
+全国陆地（含岛屿）和海疆分段线均来自同一个包。南海岛屿及相应线段以插图显示。
+地图生成源代码：scripts/build-city-map.py；更多说明见仓库 docs/map-data.md。
+
+台湾县市补充数据：geoBoundaries TWN ADM1，代表年份2017，来源 OpenStreetMap / Wambacher。
+geoBoundaries 平台署名：geoBoundaries / William & Mary geoLab，https://www.geoboundaries.org/ ，CC BY 4.0，https://creativecommons.org/licenses/by/4.0/ 。
+原始数据库署名：© OpenStreetMap contributors，https://www.openstreetmap.org/copyright 。原始数据及其派生数据库遵循 ODbL 1.0：https://opendatacommons.org/licenses/odbl/1-0/ 。
+元数据：https://www.geoboundaries.org/api/current/gbOpen/TWN/ADM1/
+固定版本：https://github.com/wmgeolab/geoBoundaries/tree/9469f09/releaseData/gbOpen/TWN/ADM1
+改动：简体中文名称、保留ISO地区标识、Albers投影与轻度简化；台湾原始GeoJSON公开于 /data/taiwan-cities-source.geojson ，派生数据库公开于 /data/taiwan-city-paths.json ，全地图路径公开于 /data/china-cities.json 。
+这些数据库可按相应开放许可获取、修改、再分发；台湾数据库的开放许可不限制文章或网站程序代码。
+
+以下为 cnmaps-data 包中原样保留的完整 MIT License：
+
+MIT License
+
+Copyright (c) 2026 Clarmy
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+
+上游 ChinaAdminDivisonSHP 的许可通知：
+
+MIT License
+
+Copyright (c) 2020 GaryBikini
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.

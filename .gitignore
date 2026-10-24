@@ -1,6 +1,8 @@
 node_modules/
 .next/
 data/
+!/public/data/
+!/public/data/**
 uploads/
 outputs/
 backups/
@@ -15,6 +17,7 @@ certs/
 .aws/
 .ssh/
 *.tsbuildinfo
+__pycache__/
 next-env.d.ts
 *.log
 *.sqlite
