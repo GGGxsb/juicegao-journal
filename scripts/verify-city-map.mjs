@@ -101,7 +101,7 @@ try {
   const before = new Map(tables.map(name => [name, database.prepare(`SELECT * FROM "${name}" ORDER BY rowid`).all().map(row => ({ ...row }))]));
   assert.equal(sqliteRuntime.migrateDatabase(migrationDirectory).applied, migrations.length - cityMigration);
   for (const name of tables) {
-    const expected = before.get(name).map(row => name === 'posts' ? { ...row, city_ids: '[]' } : row);
+    const expected = before.get(name).map(row => name === 'posts' ? { ...row, city_ids: '[]', view_count: 0 } : row);
     assert.deepEqual(database.prepare(`SELECT * FROM "${name}" ORDER BY rowid`).all().map(row => ({ ...row })), expected, `${name} changed during the map migration`);
   }
   assert.deepEqual(database.prepare('PRAGMA foreign_key_check').all(), []);

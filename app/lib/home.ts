@@ -3,6 +3,7 @@ import { getDb } from '@/db';
 import { posts } from '@/db/schema';
 import type { HomeOverview } from './types';
 import { githubContributionConfig } from './github-contributions';
+import {getTrafficTotals} from './analytics';
 
 /** Public homepage data: drafts never contribute to dates or activity. */
 export async function getHomeOverview(githubProfile = ''): Promise<HomeOverview> {
@@ -11,11 +12,12 @@ export async function getHomeOverview(githubProfile = ''): Promise<HomeOverview>
   beginning.setUTCDate(beginning.getUTCDate() - 364 - beginning.getUTCDay());
   const date = sql<string>`date(${posts.publishedAt}, '+8 hours')`;
   const db = getDb();
-  const [dates, activity] = await Promise.all([
+  const [dates, activity, traffic] = await Promise.all([
     db.select({ firstPublishedAt:sql<string | null>`min(${posts.publishedAt})`, lastUpdatedAt:sql<string | null>`max(${posts.updatedAt})` }).from(posts).where(eq(posts.status, 'published')),
     db.select({date, count:sql<number>`count(*)`.mapWith(Number)}).from(posts)
       .where(and(eq(posts.status, 'published'),gte(date, beginning.toISOString().slice(0,10))))
       .groupBy(date).orderBy(date),
+    getTrafficTotals(),
   ]);
-  return {today,github:githubContributionConfig(githubProfile),...dates[0],activity:activity.filter(day=>day.date<=today)};
+  return {today,traffic,github:githubContributionConfig(githubProfile),...dates[0],activity:activity.filter(day=>day.date<=today)};
 }

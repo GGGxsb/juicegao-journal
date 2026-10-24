@@ -2,6 +2,7 @@ import type { Post } from '../lib/types';
 import { postHref, tagHref } from '../lib/post-links';
 import PostCover from './post-cover';
 import './post-list.css';
+import {Eye} from 'lucide-react';
 
 type PostListProps = {
   posts: Post[];
@@ -21,6 +22,7 @@ function PostCard({post}:{post:Post}) {
           <time dateTime={post.publishedAt}>{formatDate(post.publishedAt)}</time>
           <span>{post.category}</span>
           <span>{Math.max(1, Math.ceil(post.content.replace(/\s/g, '').length / 400))} 分钟</span>
+          <span className="post-view-count" title="同一浏览器对每篇文章只计一次"><Eye size={13} aria-hidden="true"/>{(post.viewCount??0).toLocaleString()} 次阅读</span>
         </div>
       </div>
       {post.coverImage && <PostCover src={post.coverImage} />}

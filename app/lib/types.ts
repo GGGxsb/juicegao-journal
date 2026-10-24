@@ -1,4 +1,5 @@
 import type { PostCategory } from "./post-categories";
+import type { TrafficTotals } from './analytics-types';
 
 export type PostStatus = "draft" | "published";
 
@@ -12,6 +13,7 @@ export interface Post {
   cityIds: string[];
   status: PostStatus;
   coverImage: string;
+  viewCount: number;
   publishedAt: string;
   createdAt: string;
   updatedAt: string;
@@ -67,6 +69,7 @@ export type SettingsInput = Omit<SiteSettings, "educationEntries" | "experienceE
 
 export interface HomeOverview {
   today: string;
+  traffic?: TrafficTotals;
   github?: { username: string | null; configured: boolean };
   firstPublishedAt: string | null;
   lastUpdatedAt: string | null;

@@ -6,5 +6,6 @@
 .article-tags a{max-width:100%;overflow-wrap:anywhere}
 .article-tags a:hover{color:var(--accent)}
 .article-main{min-width:0}
+.article-view-count{display:inline-flex;align-items:center;gap:5px}
 [data-article-body]{scroll-margin-top:24px}
 @media(max-width:560px){.listing-tools{font-size:12px}}

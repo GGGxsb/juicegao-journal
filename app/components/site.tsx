@@ -1,6 +1,6 @@
 'use client';
 import {useEffect,useRef,useState,type ReactNode} from 'react';
-import {Search,Sun,Moon,ChevronDown,ArrowLeft,ArrowRight,MapPin,Mail,Menu,X,UserRound,Check,Copy,Code2} from 'lucide-react';
+import {Search,Sun,Moon,ChevronDown,ArrowLeft,ArrowRight,MapPin,Mail,Menu,X,UserRound,Check,Copy,Code2,Eye} from 'lucide-react';
 import type {Post,SiteSettings,Pagination,PostStatistics,PostCollection,HomeOverview,ArticleNavigation as ArticleNavigationData} from '../lib/types';
 import {Markdown,getMarkdownHeadings} from './markdown';
 import {PageNavigation} from './pagination';
@@ -13,6 +13,8 @@ import { ArticleNavigation } from './article-navigation';
 import { postHref, tagHref } from '../lib/post-links';
 import { POST_CATEGORIES } from '../lib/post-categories';
 import './site-navigation.css';
+import PageViewTracker from './page-view-tracker';
+import type {RecordedPageView} from '../lib/analytics-types';
 
 type View='home'|'articles'|'about'|'article'|'tags'|'map';
 type JournalProps={settings:SiteSettings;posts:Post[];view:View;article?:Post;pagination?:Pagination;stats?:PostStatistics;categories?:string[];selectedCategory?:string;selectedTag?:string;searchQuery?:string;home?:HomeOverview;navigation?:ArticleNavigationData;returnToMap?:boolean;children?:ReactNode};
@@ -20,6 +22,7 @@ const formatDate=(value:string)=>new Date(value).toLocaleDateString('zh-CN',{yea
 const readingTime=(content:string)=>Math.max(1,Math.ceil(content.replace(/\s/g,'').length/400));
 export default function Journal({settings,posts,view,article,pagination,stats,selectedCategory='全部',selectedTag='',searchQuery='',home,navigation,returnToMap=false,children}:JournalProps){
   const [dark,setDark]=useState(false),[searchOpen,setSearchOpen]=useState(false),[mobileOpen,setMobileOpen]=useState(false),[query,setQuery]=useState(''),[copied,setCopied]=useState(false);
+  const [traffic,setTraffic]=useState<RecordedPageView|null>(null);
   const [searchPage,setSearchPage]=useState(1),[results,setResults]=useState<PostCollection|null>(null),[searchLoading,setSearchLoading]=useState(false),[searchError,setSearchError]=useState('');
   const input=useRef<HTMLInputElement>(null),dialog=useRef<HTMLElement>(null);
   useEffect(()=>{const saved=localStorage.getItem('journal-theme');const value=saved?saved==='dark':matchMedia('(prefers-color-scheme: dark)').matches;setDark(value);document.documentElement.dataset.theme=value?'dark':'light'},[]);
@@ -49,9 +52,10 @@ export default function Journal({settings,posts,view,article,pagination,stats,se
   const count=pagination&&<p className="listing-count">{searchQuery&&<>“{searchQuery}” · </>}共 {pagination.total} 篇{pagination.totalPages>1&&<> · 第 {pagination.page} / {pagination.totalPages} 页</>}</p>;
   const pageNavigation=pagination&&<PageNavigation pagination={pagination} hrefForPage={pageHref} label="文章分页"/>;
   return <div className="journal">
+    <PageViewTracker onRecorded={setTraffic}/>
     <div className="site-header-shell"><header className="site-header"><a href="/" className="site-name">{name}'s Blog</a><nav className={mobileOpen?'main-nav is-open':'main-nav'} aria-label="主导航"><details className="blog-menu"><summary className={view==='articles'||view==='article'||view==='tags'?'active':''}>博客 <ChevronDown size={14}/></summary><div className="blog-dropdown">{POST_CATEGORIES.map(category=><a key={category} href={`/articles?${new URLSearchParams({category})}`} aria-current={view==="articles"&&selectedCategory===category?"page":undefined}>{category}</a>)}</div></details><a className={view==='about'?'active':''} href="/about">关于</a><a className={view==='map'?'active':''} href="/map" aria-current={view==='map'?'page':undefined}>地图</a></nav><div className="header-actions"><button className="search-trigger" onClick={()=>setSearchOpen(true)} aria-label="搜索"><Search size={16}/><span>搜索</span></button><button className="icon-button" onClick={toggleTheme} aria-label={dark?'切换浅色模式':'切换深色模式'}>{dark?<Sun size={19}/>:<Moon size={19}/>}</button><button className="icon-button mobile-toggle" onClick={()=>setMobileOpen(!mobileOpen)} aria-expanded={mobileOpen} aria-label="菜单">{mobileOpen?<X size={20}/>:<Menu size={20}/>}</button></div></header></div>
     <main id="main-content">
-      {view==='home'&&<>{profile}<HomeContent settings={settings} bio={bio} description={description} stats={stats} home={home}/></>}
+      {view==='home'&&<>{profile}<HomeContent settings={settings} bio={bio} description={description} stats={stats} home={home} traffic={traffic??home?.traffic}/></>}
       {view==='articles'&&<section className="listing-page"><h1>{selectedCategory==='全部'?'博客':selectedCategory}</h1><nav className="category-tabs" aria-label="分类">{['全部',...POST_CATEGORIES].map(category=><a key={category} className={category===selectedCategory?'selected':''} href={categoryHref(category)} aria-current={category===selectedCategory?'page':undefined}>{category}</a>)}</nav><div className="listing-tools"><span>{selectedTag?`标签：${selectedTag}`:"按主题浏览记录"}</span></div>{count}{postList}{pageNavigation}</section>}
       {view==='about'&&<section className="about-page">{profile}<div className="about-content"><h2>关于我</h2><p>{bio||'学习经历与生活记录。'}</p>{description&&<div className="home-copy"><Markdown content={description}/></div>}<ResumeSections settings={settings}/></div></section>}
       {(view==='tags'||view==='map')&&children}
@@ -59,7 +63,7 @@ export default function Journal({settings,posts,view,article,pagination,stats,se
         <div className="article-main" data-article-main>
           <a className="back-link" href={returnToMap?'/map':'/articles'}><ArrowLeft size={15}/>{returnToMap?'返回地图':'返回'}</a>
           <h1>{article.title}</h1>
-          <div className="article-meta"><time>{formatDate(article.publishedAt)}</time><span>{article.category}</span><span>{readingTime(article.content)} 分钟</span></div>
+          <div className="article-meta"><time>{formatDate(article.publishedAt)}</time><span>{article.category}</span><span>{readingTime(article.content)} 分钟</span><span className="article-view-count" title="同一浏览器对每篇文章只计一次，已登录站主不计入"><Eye size={14} aria-hidden="true"/>{(traffic?.path===postHref(article)?traffic.postViews??article.viewCount:article.viewCount)?.toLocaleString()??'0'} 次阅读</span></div>
           {article.coverImage&&<div className="article-cover-frame"><img className="article-cover-glow" src={article.coverImage} alt="" aria-hidden="true"/><img className="article-cover" src={article.coverImage} alt={article.title}/></div>}
           <div data-article-body><Markdown content={article.content}/></div>
           <div className="article-tags">{article.tags.map(tag=><a key={tag} href={tagHref(tag)}>#{tag}</a>)}</div>

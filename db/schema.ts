@@ -25,6 +25,7 @@ export const posts = sqliteTable("posts", {
   cityIds: text("city_ids", { mode: "json" }).$type<string[]>().notNull().default([]),
   status: text("status", { enum: ["draft", "published"] }).notNull().default("draft"),
   coverImage: text("cover_image").notNull().default(""),
+  viewCount: integer("view_count").notNull().default(0),
   publishedAt: text("published_at").notNull().default(""),
   createdAt: text("created_at").notNull(),
   updatedAt: text("updated_at").notNull(),
@@ -142,6 +143,23 @@ export const postLikes = sqliteTable("post_likes", {
   visitorHash: text("visitor_hash").notNull(),
   createdAt: text("created_at").notNull(),
 }, table => [primaryKey({ columns: [table.postId, table.visitorHash] })]);
+
+export const postReaders = sqliteTable("post_readers", {
+  postId: text("post_id").notNull().references(() => posts.id, {onDelete:"cascade"}),
+  visitorHash: text("visitor_hash").notNull(),
+  createdAt: integer("created_at").notNull(),
+}, table => [primaryKey({columns:[table.postId,table.visitorHash]})]);
+
+export const siteTraffic = sqliteTable("site_traffic", {
+  id: text("id").primaryKey(),
+  pageViews: integer("page_views").notNull().default(0),
+}, table => [check("site_traffic_id",sql`${table.id} = 'site'`),check("site_traffic_nonnegative",sql`${table.pageViews} >= 0`)]);
+
+export const pageVisitWindows = sqliteTable("page_visit_windows", {
+  visitorHash: text("visitor_hash").notNull(),
+  path: text("path").notNull(),
+  countedAt: integer("counted_at").notNull(),
+}, table => [primaryKey({columns:[table.visitorHash,table.path]}),index("page_visit_windows_counted_idx").on(table.countedAt)]);
 
 export const interactionRateLimits = sqliteTable("interaction_rate_limits", {
   key: text("key").primaryKey(),

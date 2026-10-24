@@ -9,6 +9,7 @@
 .post-item.has-cover-color .post-item-tags a{transition:color .2s,background-color .2s,border-color .2s}
 .post-item.has-cover-color:hover .post-item-tags a,.post-item.has-cover-color:focus-within .post-item-tags a{background:var(--cover-tint);color:var(--cover-ink)}
 .post-summary{position:relative;z-index:1;min-width:0;overflow-wrap:anywhere}
+.post-view-count{display:inline-flex;align-items:center;gap:5px}
 .has-cover .post-summary{padding-right:22%;min-height:112px}
 .post-item-tags{position:relative;z-index:1;display:flex;flex-wrap:wrap;gap:6px 12px;margin-top:12px;font-size:12px;color:var(--muted)}
 .post-item-tags a{overflow-wrap:anywhere;max-width:100%}

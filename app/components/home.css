@@ -16,7 +16,7 @@
 .home-statistics a::after{content:'';position:absolute;inset:0;border-radius:12px}
 .home-statistics a:focus-visible{outline:none}
 .home-statistics a:focus-visible::after{outline:2px solid var(--accent);outline-offset:4px}
-@media(min-width:1024px){.home-statistics{grid-template-columns:repeat(4,minmax(0,1fr))}}
+@media(min-width:1024px){.home-statistics{grid-template-columns:repeat(3,minmax(0,1fr))}}
 @media(max-width:767px){.home-section.home-statistics-section{grid-template-columns:1fr;row-gap:20px}}
 @media(max-width:319px){.home-statistics{grid-template-columns:1fr}}
 .writing-calendar{--day-0:var(--soft);--day-1:#c5e1e9;--day-2:#94c5d5;--day-3:#659eb9;--day-4:#39748e}
