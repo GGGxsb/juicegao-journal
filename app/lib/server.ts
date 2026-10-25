@@ -8,6 +8,7 @@ import { getAdminSession, requireAdmin, type AdminPrincipal } from "./admin-auth
 import { ApiError } from "./errors";
 import { DEFAULT_POST_CATEGORY, POST_CATEGORIES, type PostCategory } from "./post-categories";
 import { cityIdsSchema } from "./draft-state";
+import {resumeImageUrl} from './resume-image';
 export { getAdminSession, requireAdmin, ApiError };
 import type { MapPost, Post, PostCollection, PostInput, PostStatus, SettingsInput, SiteSettings } from "./types";
 
@@ -211,6 +212,8 @@ const resumeEntrySchema = z.object({
   period: z.string().trim().max(80).default(""),
   description: z.string().max(3000).default(""),
   url: z.string().trim().max(2048).refine(safeResumeUrl, "条目链接必须为空或不含账号密码的 HTTPS 地址。").default(""),
+  // Missing fields from older editors preserve the saved cover; '' removes it.
+  coverImage: z.string().trim().max(2048).refine(value=>!value||Boolean(resumeImageUrl(value)),"封面图片必须是本站路径或不含账号密码的 HTTPS 地址。").optional(),
 }).strict();
 
 const resumeEntriesSchema = z.array(resumeEntrySchema).max(20, "每组最多添加 20 个条目。").superRefine((entries, context) => {
@@ -288,7 +291,13 @@ export async function deletePost(id: string): Promise<void> {
 }
 
 export async function saveSettings(input: SettingsInput): Promise<SiteSettings> {
-  const { educationEntries, experienceEntries, ...fields } = input;
+  const { educationEntries: educationInput, experienceEntries: experienceInput, ...fields } = input;
+  const previous=await getSettings();
+  const covers=(entries:SiteSettings['educationEntries']|undefined,saved:SiteSettings['educationEntries'])=>{
+    const images=new Map(saved.map(entry=>[entry.id,entry.coverImage]));
+    return entries?.map(entry=>({...entry,coverImage:entry.coverImage??images.get(entry.id)??''}));
+  };
+  const educationEntries=covers(educationInput,previous.educationEntries),experienceEntries=covers(experienceInput,previous.experienceEntries);
   const updatedAt = new Date().toISOString();
   await getDb().insert(siteSettings).values({
     ...fields, id: "site", updatedAt,

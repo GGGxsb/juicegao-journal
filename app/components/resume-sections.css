@@ -5,6 +5,8 @@
 .resume-card-list{list-style:none;margin:0;padding:0;min-width:0;display:flex;flex-direction:column;gap:12px}
 .resume-card{
   position:relative;
+  isolation:isolate;
+  overflow:hidden;
   display:flex;
   flex-direction:column;
   gap:8px;
@@ -21,12 +23,18 @@
   border-color:color-mix(in srgb,var(--ink) 20%,var(--card));
 }
 .resume-card-heading{display:flex;flex-direction:column;gap:4px}
-.resume-organization{margin:0;font-size:18px;line-height:28px;font-weight:600;overflow-wrap:anywhere}
+.resume-card-body{z-index:1;display:flex;flex-direction:column;gap:8px;min-width:0}
+.resume-card.has-cover .resume-card-body{padding-right:22%;min-height:88px}
+.resume-card.has-cover :is(.resume-title,.resume-period){color:var(--ink)}
+.resume-card.has-cover-color{--cover-ink:color-mix(in srgb,var(--cover-color) 40%,var(--ink));--cover-tint:color-mix(in srgb,var(--cover-color) 12%,var(--card));--cover-border:color-mix(in srgb,var(--cover-color) 38%,var(--line))}
+.resume-card.has-cover-color:is(:hover,:focus-within){background:var(--cover-tint);border-color:var(--cover-border)}
+.resume-card.has-cover-color:is(:hover,:focus-within) .resume-organization{color:var(--cover-ink)}
+.resume-organization{margin:0;font-size:18px;line-height:28px;font-weight:600;overflow-wrap:anywhere;transition:color .2s}
 .resume-organization a{transition:color .2s}
 /* Stretch the named heading link over the card without nesting Markdown links. */
 .resume-card-link::after{content:'';position:absolute;inset:0;border-radius:12px}
 .resume-card-link:focus-visible{outline:none}
-.resume-card-link:focus-visible::after{outline:2px solid var(--accent);outline-offset:4px}
+.resume-card:has(.resume-card-link:focus-visible){outline:2px solid var(--accent);outline-offset:4px}
 .resume-card .resume-detail :is(a,button,input,select,textarea,summary,[tabindex]){position:relative;z-index:1}
 .resume-title{margin:0;font-size:14px;line-height:20px;color:var(--muted);overflow-wrap:anywhere}
 .resume-period{margin:0;font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:12px;line-height:16px;color:color-mix(in srgb,var(--muted) 80%,var(--bg));overflow-wrap:anywhere}
@@ -35,7 +43,7 @@
 .resume-detail .markdown p{margin-bottom:10px}.resume-detail .markdown :is(ul,ol){margin:8px 0 12px;padding-left:20px}
 .resume-detail .markdown :is(h1,h2,h3,h4,h5,h6){font-size:16px;margin:12px 0 8px}
 .about-content .resume-section{margin-top:40px}
-@media(max-width:767px){.home-section.resume-section{grid-template-columns:1fr;gap:20px}}
+@media(max-width:767px){.home-section.resume-section{grid-template-columns:1fr;gap:20px}.resume-card.has-cover .resume-card-body{padding-top:96px;padding-right:0;min-height:0}}
 @media(prefers-reduced-motion:reduce){
-  .resume-card,.resume-organization a{transition:none}
+  .resume-card,.resume-organization,.resume-organization a{transition:none}
 }

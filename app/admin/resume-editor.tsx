@@ -1,21 +1,26 @@
 'use client';
 
-import { useState } from 'react';
+import { useRef,useState } from 'react';
 import type { ResumeEntry } from '../lib/types';
 import './resume-editor.css';
+import {uploadImageFile} from './upload-image';
+import {resumeImageUrl} from '../lib/resume-image';
 
 type ResumeEditorProps = {
   kind: 'education' | 'experience';
   entries: ResumeEntry[];
   onChange: (entries: ResumeEntry[]) => void;
+  onBusyChange: (busy:boolean) => void;
 };
 
 const MAX_ENTRIES = 20;
 
-export default function ResumeEditor({ kind, entries, onChange }: ResumeEditorProps) {
+export default function ResumeEditor({ kind, entries, onChange,onBusyChange }: ResumeEditorProps) {
   const education = kind === 'education';
   const group = education ? '教育经历' : '履历';
   const [expanded, setExpanded] = useState<Set<string>>(() => new Set(entries.length === 1 ? [entries[0].id] : []));
+  const [uploading,setUploading]=useState<string|null>(null),[error,setError]=useState('');
+  const fileInputs=useRef(new Map<string,HTMLInputElement>());
 
   function setOpen(id: string, open: boolean) {
     setExpanded(previous => {
@@ -28,7 +33,7 @@ export default function ResumeEditor({ kind, entries, onChange }: ResumeEditorPr
 
   function add() {
     if (entries.length >= MAX_ENTRIES) return;
-    const entry: ResumeEntry = { id: crypto.randomUUID(), organization: '', title: '', period: '', description: '', url: '' };
+    const entry: ResumeEntry = { id: crypto.randomUUID(), organization: '', title: '', period: '', description: '', url: '',coverImage:'' };
     onChange([...entries, entry]);
     setOpen(entry.id, true);
   }
@@ -48,6 +53,13 @@ export default function ResumeEditor({ kind, entries, onChange }: ResumeEditorPr
   function remove(id: string) {
     onChange(entries.filter(entry => entry.id !== id));
     setOpen(id, false);
+  }
+  async function upload(id:string,file:File|undefined) {
+    if(!file||uploading)return;
+    setUploading(id);setError('');onBusyChange(true);
+    try {update(id,'coverImage',await uploadImageFile(file));}
+    catch(cause){setError(cause instanceof Error?cause.message:'图片上传失败，请重试。');}
+    finally {setUploading(null);onBusyChange(false);const input=fileInputs.current.get(id);if(input)input.value='';}
   }
 
   return <section className="admin-resume-group" aria-label={`${group}管理`}>
@@ -69,9 +81,17 @@ export default function ResumeEditor({ kind, entries, onChange }: ResumeEditorPr
         <label className="admin-field">时间<input maxLength={80} value={entry.period} onChange={event => update(entry.id, 'period', event.target.value)} placeholder="如：2022.09—至今" /></label>
         <label className="admin-field">补充说明<textarea rows={3} maxLength={3000} value={entry.description} onChange={event => update(entry.id, 'description', event.target.value)} placeholder={education ? '可填写学习内容、研究方向或其他说明（支持 Markdown）' : '可填写职责、项目或其他说明（支持 Markdown）'} /><small>可选，支持 Markdown，最多 3000 字。</small></label>
         <label className="admin-field">链接<input type="url" inputMode="url" pattern="[Hh][Tt][Tt][Pp][Ss]://.+" maxLength={2048} value={entry.url} onChange={event => update(entry.id, 'url', event.target.value)} placeholder="https://" title="请填写 HTTPS 链接，或留空" /><small>可选，填写 HTTPS 网页地址。</small></label>
+        <div className="admin-field"><span>卡片封面 <em>可选</em></span>
+          {resumeImageUrl(entry.coverImage)&&<div className="admin-resume-cover"><img src={resumeImageUrl(entry.coverImage)} alt={`${entry.organization||group}封面预览`}/></div>}
+          <div className="admin-resume-cover-actions"><button type="button" className="admin-button admin-small" onClick={()=>fileInputs.current.get(entry.id)?.click()} disabled={Boolean(uploading)}>{uploading===entry.id?'正在上传…':entry.coverImage?'更换图片':'上传图片'}</button>{entry.coverImage&&<button type="button" className="admin-delete-link" onClick={()=>update(entry.id,'coverImage','')} disabled={Boolean(uploading)}>移除图片</button>}</div>
+          <label className="admin-resume-image-url">图片地址<input inputMode="url" maxLength={2048} value={entry.coverImage??''} onChange={event=>update(entry.id,'coverImage',event.target.value)} placeholder="/media/… 或 https://…"/></label>
+          <small>图片在卡片中渐隐显示；支持 PNG、JPG、WebP、GIF，8 MB 内。上传或更改后点击「保存资料」。</small>
+          <input type="file" hidden accept="image/png,image/jpeg,image/webp,image/gif" ref={node=>{if(node)fileInputs.current.set(entry.id,node);else fileInputs.current.delete(entry.id);}} onChange={event=>void upload(entry.id,event.target.files?.[0])}/>
+        </div>
         <div className="admin-resume-actions"><button type="button" className="admin-button admin-small" disabled={index === 0} onClick={() => move(index, -1)} aria-label={`上移${group}第 ${index + 1} 项`}>上移</button><button type="button" className="admin-button admin-small" disabled={index === entries.length - 1} onClick={() => move(index, 1)} aria-label={`下移${group}第 ${index + 1} 项`}>下移</button><button type="button" className="admin-delete-link" onClick={() => remove(entry.id)} aria-label={`移除${group}第 ${index + 1} 项`}>移除条目</button></div>
       </div>
     </details>)}</div> : <p className="admin-resume-empty">暂无条目，填写后会显示在网站上。</p>}
     {entries.length >= MAX_ENTRIES && <p className="admin-resume-limit">本组最多添加 {MAX_ENTRIES} 个条目。</p>}
+    {error&&<p className="admin-resume-upload-error" role="alert">{error}</p>}
   </section>;
 }

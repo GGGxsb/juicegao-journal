@@ -1,0 +1,5 @@
+/* Shared Axi-Theme image mask for article, education and career cards. */
+.card-cover{position:absolute;z-index:0;display:block;inset:0 0 0 auto;width:60%;height:100%;object-fit:cover;opacity:.5;pointer-events:none;border-radius:inherit;-webkit-mask-image:linear-gradient(to right,transparent,#000);mask-image:linear-gradient(to right,transparent,#000);transition:opacity .3s}
+[data-cover-card]:is(:hover,:focus-within) .card-cover{opacity:.7}
+@media(max-width:767px){.card-cover{inset:0 0 auto;width:100%;height:66.666667%;-webkit-mask-image:linear-gradient(to top,transparent,#000);mask-image:linear-gradient(to top,transparent,#000)}}
+@media(prefers-reduced-motion:reduce){.card-cover{transition:none}}

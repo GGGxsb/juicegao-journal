@@ -2,6 +2,8 @@
 // Source links and adaptations are recorded in docs/axi-theme-reference.md.
 import type { ResumeEntry, SiteSettings } from '../lib/types';
 import { Markdown } from './markdown';
+import CardCover from './card-cover';
+import {resumeImageUrl} from '../lib/resume-image';
 import './resume-sections.css';
 
 function entryLink(value: string) {
@@ -13,15 +15,18 @@ function entryLink(value: string) {
 
 function ResumeCards({entries}: {entries: ResumeEntry[]}) {
   return <ol className="resume-card-list">{entries.map(entry => {
-    const url = entryLink(entry.url);
+    const url = entryLink(entry.url),cover=resumeImageUrl(entry.coverImage);
     return <li key={entry.id}>
-      <article className="resume-card" data-resume-id={entry.id}>
-        <div className="resume-card-heading">
-          <h3 className="resume-organization">{url ? <a className="resume-card-link" href={url} target="_blank" rel="noopener noreferrer">{entry.organization}</a> : entry.organization}</h3>
-          {entry.title && <p className="resume-title">{entry.title}</p>}
-          {entry.period && <p className="resume-period" title={entry.period}>{entry.period}</p>}
+      <article className={`resume-card${cover?' has-cover':''}`} data-resume-id={entry.id} data-cover-card>
+        <div className="resume-card-body">
+          <div className="resume-card-heading">
+            <h3 className="resume-organization">{url ? <a className="resume-card-link" href={url} target="_blank" rel="noopener noreferrer">{entry.organization}</a> : entry.organization}</h3>
+            {entry.title && <p className="resume-title">{entry.title}</p>}
+            {entry.period && <p className="resume-period" title={entry.period}>{entry.period}</p>}
+          </div>
+          {entry.description && <div className="resume-detail"><Markdown content={entry.description}/></div>}
         </div>
-        {entry.description && <div className="resume-detail"><Markdown content={entry.description}/></div>}
+        {cover&&<CardCover src={cover} className="resume-cover"/>}
       </article>
     </li>;
   })}</ol>;

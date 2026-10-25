@@ -1,10 +1,11 @@
 'use client';
 import { useEffect, useRef } from 'react';
 import { dominantCoverColor } from '../lib/cover-palette';
+import './card-cover.css';
 
 const paletteCache = new Map<string, string | null>();
 function applyColor(element: HTMLImageElement, color: string | null) {
-  const card = element.closest<HTMLElement>('.post-item');
+  const card = element.closest<HTMLElement>('[data-cover-card]');
   if (!card) return;
   card.classList.toggle('has-cover-color', Boolean(color));
   if (color) card.style.setProperty('--cover-color', color);
@@ -26,12 +27,12 @@ function sample(element: HTMLImageElement) {
   if (paletteCache.size >= 128) paletteCache.delete(paletteCache.keys().next().value!);
   paletteCache.set(src, color); applyColor(element, color);
 }
-export default function PostCover({ src }: { src: string }) {
+export default function CardCover({ src, className='' }: { src: string; className?:string }) {
   const image = useRef<HTMLImageElement>(null);
   useEffect(() => {
     const element = image.current;
     if (element) sample(element);
     return () => { if (element) applyColor(element, null); };
   }, [src]);
-  return <img ref={image} onLoad={event => sample(event.currentTarget)} className="post-cover" src={src} alt="" width={1200} height={630} loading="lazy" decoding="async" aria-hidden="true" />;
+  return <img ref={image} onLoad={event => sample(event.currentTarget)} className={`card-cover${className?` ${className}`:''}`} src={src} alt="" width={1200} height={630} loading="lazy" decoding="async" aria-hidden="true" />;
 }

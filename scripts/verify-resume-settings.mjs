@@ -14,7 +14,7 @@ process.env.DATA_DIR = path.join(directory, 'data');
 const unregister = register();
 const { ApiError, DEFAULT_SETTINGS, getSettings, saveSettings, validateSettings } = await import('../app/lib/server.ts');
 const base = { name: '站主', bio: '', description: '', avatar: '', github: '', email: '', location: '', education: '  ## 原有学习补充\n\n保留 Markdown 与空白。\n\n', startedAt: '' };
-const entry = (fields = {}) => ({ id: randomUUID(), organization: '学校或机构', title: '专业或职位', period: '2020—2024', description: '**Markdown**\n\n  原文与段落。\n', url: 'https://example.edu/resume?x=1#about', ...fields });
+const entry = (fields = {}) => ({ id: randomUUID(), organization: '学校或机构', title: '专业或职位', period: '2020—2024', description: '**Markdown**\n\n  原文与段落。\n', url: 'https://example.edu/resume?x=1#about', coverImage:'',...fields });
 function invalid(fields) { assert.throws(() => validateSettings({ ...base, ...fields }), error => error instanceof ApiError && error.status === 400); }
 let database;
 try {
@@ -73,6 +73,22 @@ try {
   const maximum = entry({ organization: '字'.repeat(160), title: '字'.repeat(160), period: '字'.repeat(80), description: '字'.repeat(3000) });
   assert.equal(validateSettings({ ...base, educationEntries: [maximum] }).educationEntries[0].description.length, 3000);
   console.log('PASS UUID, per-group uniqueness, group sizes, field bounds, safe HTTPS links and Markdown preservation are validated by the real input schema.');
+
+  const school=entry({coverImage:'/media/school.png'}),job=entry({coverImage:'https://images.example.com/job.jpg'});
+  await saveSettings(validateSettings({...base,educationEntries:[school],experienceEntries:[job]}));
+  assert.equal((await getSettings()).educationEntries[0].coverImage,school.coverImage);
+  assert.equal((await getSettings()).experienceEntries[0].coverImage,job.coverImage);
+  const {coverImage:_image,...olderSchool}=school;
+  const kept=await saveSettings(validateSettings({...base,educationEntries:[{...olderSchool,title:'旧编辑器更新专业'}]}));
+  assert.equal(kept.educationEntries[0].coverImage,school.coverImage);assert.equal(kept.experienceEntries[0].coverImage,job.coverImage);
+  const removed=await saveSettings(validateSettings({...base,educationEntries:[{...olderSchool,coverImage:''}]}));
+  assert.equal(removed.educationEntries[0].coverImage,'');assert.equal(removed.experienceEntries[0].coverImage,job.coverImage);
+  for(const coverImage of ['http://example.com/x.jpg','javascript:alert(1)','data:image/png;base64,x','//example.com/x.jpg','https://user:pass@example.com/x.jpg','/\\example.com/x.jpg','/media/line\nbreak.jpg',null,'x'.repeat(2049)])invalid({educationEntries:[entry({coverImage})]});
+  assert.equal(validateSettings({...base,educationEntries:[entry({coverImage:'  /media/trimmed.png  '})]}).educationEntries[0].coverImage,'/media/trimmed.png');
+  closeDatabase();
+  assert.equal((await getSettings()).experienceEntries[0].coverImage,job.coverImage);
+  await saveSettings(validateSettings({...base,educationEntries:[],experienceEntries:[]}));
+  console.log('PASS optional covers persist in SQL across restart, older editors preserve saved images, explicit removal clears only the selected group and unsafe image URLs are rejected');
 
   database = new DatabaseSync(path.join(process.env.DATA_DIR, 'journal.sqlite'));
   const persisted = database.prepare('SELECT education,education_entries,experience_entries FROM site_settings WHERE id=?').get('site');

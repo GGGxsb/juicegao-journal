@@ -34,4 +34,17 @@ try {
   const unsafe=render({...empty,educationEntries:[entry('unsafe','<img src=x onerror=alert(1)>',{url:'javascript:alert(1)',description:'<script>alert(1)</script>\n\n[bad](javascript:alert(1))'})]});
   assert.ok(!unsafe.includes('<img src=x')&&!unsafe.includes('<script>')&&!unsafe.includes('href="javascript:'));
   console.log('PASS text, Markdown and direct database links cannot inject executable HTML');
+  const covered=render({...empty,educationEntries:[entry('covered-school','学校',{coverImage:'/media/school.png'})],experienceEntries:[entry('covered-job','公司',{coverImage:'https://images.example.com/job.jpg'}),entry('without-image','没有封面的公司',{coverImage:'javascript:alert(1)'})]});
+  assert.equal((covered.match(/class="resume-card has-cover"/g)||[]).length,2);
+  assert.equal((covered.match(/class="card-cover resume-cover"/g)||[]).length,2);
+  assert.ok(covered.includes('src="/media/school.png"')&&covered.includes('src="https://images.example.com/job.jpg"'));
+  assert.ok(!covered.includes('javascript:alert'));
+  for(const anchor of covered.matchAll(/<a\b[^>]*>[\s\S]*?<\/a>/g))assert.ok(!anchor[0].slice(2).includes('<a '));
+  const {default:PostList}=await import('../app/components/post-list.tsx');
+  const post=renderToStaticMarkup(createElement(PostList,{posts:[{id:'article',title:'文章',content:'正文',excerpt:'摘要',category:'Daily Life',tags:[],coverImage:'/media/article.png',publishedAt:'2026-01-01T00:00:00Z',viewCount:0}]}));
+  assert.ok(post.includes('data-cover-card="true"')&&post.includes('class="card-cover post-cover"'));
+  const {default:ResumeEditor}=await import('../app/admin/resume-editor.tsx');
+  const editor=renderToStaticMarkup(createElement(ResumeEditor,{kind:'education',entries:[entry('admin-image','学校',{coverImage:'/media/school.png'})],onChange:()=>{},onBusyChange:()=>{}}));
+  assert.ok(editor.includes('更换图片')&&editor.includes('移除图片')&&editor.includes('图片地址')&&editor.includes('type="file"')&&editor.includes('封面预览'));
+  console.log('PASS education and career use the shared decorative cover, invalid stored URLs render no image, article covers remain supported and the editor provides upload/replace/remove controls');
 } finally {unregister();styles.deregister();}

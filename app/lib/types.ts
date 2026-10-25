@@ -47,6 +47,7 @@ export interface ResumeEntry {
   period: string;
   description: string;
   url: string;
+  coverImage?: string;
 }
 
 export interface SiteSettings {
