@@ -1,4 +1,4 @@
-/* Axi-Theme PostPreview.astro: directional image masks and 300ms opacity feedback. */
+/* Article covers expand above the summary; resume cards keep their directional image masks. */
 .post-list .post-item>a{display:block}
 .post-list{display:flex;flex-direction:column;gap:14px}
 .post-list .post-item,.post-list .post-item:last-child{position:relative;isolation:isolate;overflow:hidden;border:1px solid var(--line);border-radius:16px;padding:20px;background:var(--card);transition:background-color .2s ease-in-out,border-color .2s}
@@ -10,15 +10,9 @@
 .post-item.has-cover-color:hover .post-item-tags a,.post-item.has-cover-color:focus-within .post-item-tags a{background:var(--cover-tint);color:var(--cover-ink)}
 .post-summary{position:relative;z-index:1;min-width:0;overflow-wrap:anywhere}
 .post-view-count{display:inline-flex;align-items:center;gap:5px}
-.has-cover .post-summary{padding-right:22%;min-height:112px}
 .post-item-tags{position:relative;z-index:1;display:flex;flex-wrap:wrap;gap:6px 12px;margin-top:12px;font-size:12px;color:var(--muted)}
 .post-item-tags a{overflow-wrap:anywhere;max-width:100%}
 .post-item-tags a:hover{color:var(--accent)}
-.has-cover .post-summary>p,.has-cover .post-meta,.has-cover .post-item-tags{color:var(--ink)}
-.has-cover .post-item-tags a{background:color-mix(in srgb,var(--bg) 85%,transparent);border-radius:4px;padding-inline:3px}
-@media(max-width:767px){
- .has-cover .post-summary{padding-top:96px;padding-right:0;min-height:0}
-}
 @media(max-width:560px){
   .post-list .post-item,.post-list .post-item:last-child{padding:16px}
 }

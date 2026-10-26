@@ -3,3 +3,13 @@
 [data-cover-card]:is(:hover,:focus-within) .card-cover{opacity:.7}
 @media(max-width:767px){.card-cover{inset:0 0 auto;width:100%;height:66.666667%;-webkit-mask-image:linear-gradient(to top,transparent,#000);mask-image:linear-gradient(to top,transparent,#000)}}
 @media(prefers-reduced-motion:reduce){.card-cover{transition:none}}
+
+/* Reveal a stable, centered image by animating its viewport, without changing its crop mode. */
+.article-cover-reveal{--cover-limit:520px;position:relative;display:block;isolation:isolate;overflow:hidden;height:min(var(--cover-peek,152px),var(--cover-natural-height,152px));margin-bottom:18px;border-radius:10px;background:color-mix(in srgb,var(--cover-color,var(--accent)) 7%,var(--soft));transition:height .42s cubic-bezier(.22,1,.36,1);overflow-anchor:none}
+.article-cover-reveal[hidden]{display:none}
+[data-cover-card] .article-cover-reveal .card-cover{inset:50% auto auto 50%;width:100%;height:min(var(--cover-natural-height,152px),var(--cover-limit));max-width:none;object-fit:contain;opacity:1;transform:translate(-50%,-50%);border-radius:0;-webkit-mask-image:none;mask-image:none;transition:none}
+[data-cover-card]:focus-within .article-cover-reveal{height:min(var(--cover-natural-height,152px),var(--cover-limit))}
+@media(hover:hover) and (pointer:fine){[data-cover-card]:hover .article-cover-reveal{height:min(var(--cover-natural-height,152px),var(--cover-limit))}}
+/* Touch readers see the full image immediately; tapping the article still opens it. */
+@media(hover:none),(pointer:coarse){.article-cover-reveal{height:min(var(--cover-natural-height,152px),var(--cover-limit));transition:none}}
+@media(prefers-reduced-motion:reduce){.article-cover-reveal{transition:none}}

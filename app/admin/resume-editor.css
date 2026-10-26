@@ -1,20 +1,20 @@
 .admin-resume-group{margin:0 0 25px;min-width:0}
 .admin-resume-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:8px}
-.admin-resume-heading h3{display:flex;align-items:baseline;flex-wrap:wrap;gap:10px;color:#607a91;font-size:13px;font-weight:600;margin:0}
-.admin-resume-heading h3 small{font-size:10px;font-weight:400;color:#a4b0bc;font-variant-numeric:tabular-nums}
-.admin-resume-group .admin-resume-help,.admin-resume-group .admin-resume-empty,.admin-resume-group .admin-resume-limit{font-size:10px;color:#9aa9b7;line-height:1.8;margin:0 0 12px}
-.admin-resume-group .admin-resume-empty{padding:16px;border:1px dashed var(--a-line);border-radius:6px;background:#fcfdfe;text-align:center}
+.admin-resume-heading h3{display:flex;align-items:baseline;flex-wrap:wrap;gap:10px;color:var(--a-text,#607a91);font-size:13px;font-weight:600;margin:0}
+.admin-resume-heading h3 small{font-size:10px;font-weight:400;color:var(--a-secondary,#a4b0bc);font-variant-numeric:tabular-nums}
+.admin-resume-group .admin-resume-help,.admin-resume-group .admin-resume-empty,.admin-resume-group .admin-resume-limit{font-size:10px;color:var(--a-secondary,#9aa9b7);line-height:1.8;margin:0 0 12px}
+.admin-resume-group .admin-resume-empty{padding:16px;border:1px dashed var(--a-line);border-radius:6px;background:var(--a-surface-muted,#fcfdfe);text-align:center}
 .admin-resume-group .admin-resume-limit{margin-top:10px}
 .admin-resume-list{display:flex;flex-direction:column;gap:12px}
-.admin-resume-entry{border:1px solid var(--a-line);border-radius:7px;background:#fcfdfe;min-width:0}
-.admin-resume-entry>summary{display:flex;align-items:center;gap:12px;list-style:none;cursor:pointer;padding:13px 15px;color:#70879b;font-size:12px}
+.admin-resume-entry{border:1px solid var(--a-line);border-radius:7px;background:var(--a-surface-muted,#fcfdfe);min-width:0}
+.admin-resume-entry>summary{display:flex;align-items:center;gap:12px;list-style:none;cursor:pointer;padding:13px 15px;color:var(--a-text,#70879b);font-size:12px}
 .admin-resume-entry>summary::-webkit-details-marker{display:none}
 .admin-resume-entry>summary>span{flex:1;min-width:0}
 .admin-resume-entry>summary strong{display:block;font-weight:500;overflow-wrap:anywhere}
-.admin-resume-entry>summary small{display:block;font-size:10px;color:#9aa9b7;overflow-wrap:anywhere;margin-top:4px;font-weight:400}
-.admin-resume-entry>summary svg{flex-shrink:0;color:#9aa9b7;transition:transform .15s ease}
+.admin-resume-entry>summary small{display:block;font-size:10px;color:var(--a-secondary,#9aa9b7);overflow-wrap:anywhere;margin-top:4px;font-weight:400}
+.admin-resume-entry>summary svg{flex-shrink:0;color:var(--a-secondary,#9aa9b7);transition:transform .15s ease}
 .admin-resume-entry[open]>summary svg{transform:rotate(180deg)}
-.admin-resume-entry>summary:focus-visible{outline:2px solid #b8d4eb;outline-offset:2px;border-radius:6px}
+.admin-resume-entry>summary:focus-visible{outline:2px solid var(--a-focus-ring,#b8d4eb);outline-offset:2px;border-radius:6px}
 .admin-resume-entry-fields{border-top:1px solid var(--a-line);padding:16px 15px}
 .admin-resume-field-pair{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
 .admin-settings-fields .admin-resume-entry .admin-field{font-size:10px;margin-bottom:16px}
@@ -22,11 +22,11 @@
 .admin-resume-entry .admin-field small{font-size:9px}
 .admin-resume-actions{display:flex;align-items:center;flex-wrap:wrap;gap:10px}
 .admin-resume-actions .admin-delete-link{margin-left:auto}
-.admin-resume-cover{max-width:320px;margin:6px 0 10px;border:1px solid var(--a-line);border-radius:6px;overflow:hidden;background:white}
+.admin-resume-cover{max-width:320px;margin:6px 0 10px;border:1px solid var(--a-line);border-radius:6px;overflow:hidden;background:var(--a-surface,white)}
 .admin-resume-cover img{display:block;width:100%;aspect-ratio:16/9;object-fit:cover}
 .admin-resume-cover-actions{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:10px}
 .admin-resume-image-url{display:flex;flex-direction:column;gap:7px}
-.admin-resume-upload-error{color:#a24141;font-size:11px;line-height:1.8}
+.admin-resume-upload-error{color:var(--a-danger-hover,#a24141);font-size:11px;line-height:1.8}
 .admin-settings-panel:disabled .admin-resume-heading button,.admin-settings-panel:disabled .admin-resume-entry-fields input,.admin-settings-panel:disabled .admin-resume-entry-fields textarea,.admin-settings-panel:disabled .admin-resume-actions button{opacity:.65;cursor:wait}
 @media(max-width:500px){.admin-resume-field-pair{grid-template-columns:1fr;gap:0}.admin-resume-entry>summary{padding:12px}.admin-resume-entry-fields{padding:14px 12px}.admin-resume-heading{gap:8px}.admin-resume-heading h3{font-size:12px}.admin-resume-heading h3 small{font-size:9px}}
 @media(prefers-reduced-motion:reduce){.admin-resume-entry>summary svg{transition:none}}

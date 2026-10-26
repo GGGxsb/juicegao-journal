@@ -34,8 +34,7 @@
 .markdown .markdown-code pre code{padding:0;background:none;border-radius:0;font-size:13px;font-family:Consolas,monospace}
 .markdown .markdown-code-token{color:var(--code-light,inherit)}
 :root[data-theme=dark] .markdown .markdown-code-token{color:var(--code-dark,inherit)}
-.admin-screen .markdown{--bg:#fff;--ink:var(--a-ink);--muted:#718197;--line:var(--a-line);--soft:#f4f7fa;--accent:var(--a-blue);color:var(--ink)}
-:root[data-theme=dark] .admin-screen .markdown .markdown-code-token{color:var(--code-light,inherit)}
+.admin-screen .markdown{--bg:var(--a-surface,#fff);--ink:var(--a-ink);--muted:var(--a-text,#718197);--line:var(--a-line);--soft:var(--a-surface-muted,#f4f7fa);--accent:var(--a-blue);color:var(--ink)}
 .admin-screen .markdown .markdown-code-toolbar>button{border:0;background:transparent}
 .admin-screen .markdown .task-list-item>input{padding:0}
 @media(max-width:560px){.markdown .markdown-table th,.markdown .markdown-table td{padding:8px 10px;min-width:95px}.markdown .markdown-code-toolbar{gap:8px}.markdown .markdown-code pre{padding:13px}.markdown .markdown-copy-status{max-width:110px}}

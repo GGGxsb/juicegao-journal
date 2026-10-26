@@ -1,7 +1,7 @@
-.admin-component-menu{position:relative;font-size:11px;color:#7590a5}
+.admin-component-menu{position:relative;font-size:11px;color:var(--a-accent,#7590a5)}
 .admin-component-menu summary{cursor:pointer;list-style:none;padding:5px 8px;border:1px solid var(--a-line);border-radius:4px;white-space:nowrap}
 .admin-component-menu summary::-webkit-details-marker{display:none}
-.admin-component-menu>div{position:absolute;left:0;top:35px;min-width:140px;z-index:15;padding:6px;background:#fff;border:1px solid var(--a-line);border-radius:6px;box-shadow:0 8px 25px #28465d15}
+.admin-component-menu>div{position:absolute;left:0;top:35px;min-width:140px;z-index:15;padding:6px;background:var(--a-surface,#fff);border:1px solid var(--a-line);border-radius:6px;box-shadow:0 8px 25px var(--a-shadow,#28465d15)}
 .admin-component-menu>div>button{display:block!important;width:100%!important;padding:8px 10px!important;text-align:left!important;height:auto!important;font-size:11px!important;border-radius:3px}
-.admin-component-menu>div>button:hover{background:#f1f6fa}
+.admin-component-menu>div>button:hover{background:var(--a-hover,#f1f6fa)}
 @media(max-width:650px){.admin-editor-toolbar{gap:8px;flex-wrap:wrap}.admin-format-tools{flex-wrap:wrap;gap:6px!important}.admin-component-menu{font-size:10px}}

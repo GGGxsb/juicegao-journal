@@ -5,6 +5,7 @@ import type {PointerEvent as ReactPointerEvent} from 'react';
 import {ArrowRight, ChevronDown, LoaderCircle, Minus, Plus, RotateCcw, Search, X} from 'lucide-react';
 import type {MapPost} from '../lib/types';
 import {postHref} from '../lib/post-links';
+import CardCover from './card-cover';
 import {fitBounds, useMapViewport, visibleMapBounds} from './map-viewport';
 import type {MapView} from './map-viewport';
 import {useMapDetails} from './use-map-details';
@@ -277,7 +278,7 @@ export default function CityMap({posts}: {posts: MapPost[]}) {
       <aside className={`city-map-panel${panelOpen ? ' is-open' : ''}`} aria-label="地图文章">
         <div className="city-map-panel-header"><div>{selectedCity && selectedCity.province !== selectedCity.name && <p>{selectedCity.province}</p>}<h2>{selectedCity?.name || selectedProvince?.name || '选择城市'}</h2>{(selectedCity || selectedProvince) && <span aria-live="polite">{selectedPosts.length} 篇文章</span>}</div><button className="city-map-panel-toggle" aria-label={panelOpen ? '收起文章列表' : '展开文章列表'} aria-expanded={panelOpen} aria-controls="city-article-list" onClick={() => setPanelOpen(value => !value)}><ChevronDown size={20}/></button></div>
         <div className="city-map-article-list" id="city-article-list" ref={listRef} tabIndex={-1} onScroll={event => persist(event.currentTarget.scrollTop)}>
-          {selectedPosts.length ? selectedPosts.map(post => <article key={post.id} className="city-map-article"><a href={`${postHref(post)}?from=map`} onClick={() => persist()}><div className="city-map-article-meta"><time dateTime={post.publishedAt}>{dateLabel(post.publishedAt)}</time></div><h3>{post.title}<ArrowRight size={16} aria-hidden="true"/></h3>{post.excerpt && <p>{post.excerpt}</p>}</a></article>) : selectedCity || selectedProvince ? <div className="city-map-empty"><p>暂无文章</p></div> : null}
+          {selectedPosts.length ? selectedPosts.map(post => <article key={post.id} className="city-map-article" data-cover-card><a href={`${postHref(post)}?from=map`} onClick={() => persist()}>{post.coverImage && <CardCover src={post.coverImage} className="city-map-article-cover" expandable/>}<div className="city-map-article-meta"><time dateTime={post.publishedAt}>{dateLabel(post.publishedAt)}</time></div><h3>{post.title}<ArrowRight size={16} aria-hidden="true"/></h3>{post.excerpt && <p>{post.excerpt}</p>}</a></article>) : selectedCity || selectedProvince ? <div className="city-map-empty"><p>暂无文章</p></div> : null}
         </div>
       </aside>
     </div>

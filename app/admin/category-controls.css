@@ -1,6 +1,6 @@
 .admin-content-controls .admin-post-filters{display:flex;align-items:center;gap:14px;min-width:0;margin-left:auto}
-.admin-category-filter{display:flex;align-items:center;gap:8px;color:#8194a6;font-size:10px;white-space:nowrap}
-.admin-category-filter select{min-width:130px;min-height:32px;max-width:100%;padding:6px 9px;border:1px solid #e3eaf0;border-radius:5px;color:#657f94;background:#fcfdfe;font-size:11px}
+.admin-category-filter{display:flex;align-items:center;gap:8px;color:var(--a-text,#8194a6);font-size:10px;white-space:nowrap}
+.admin-category-filter select{min-width:130px;min-height:32px;max-width:100%;padding:6px 9px;border:1px solid var(--a-border,#e3eaf0);border-radius:5px;color:var(--a-text,#657f94);background:var(--a-surface-muted,#fcfdfe);font-size:11px}
 .admin-category-filter select:disabled{cursor:wait;opacity:.65}
 .admin-content-controls .admin-search{min-width:0}
 @media(max-width:1100px){.admin-content-controls{flex-wrap:wrap}.admin-content-controls .admin-tabs button.is-active:after{bottom:-4px}}

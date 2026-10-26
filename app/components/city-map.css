@@ -43,3 +43,14 @@
 .city-map-province:hover,.city-map-city:hover,
 .city-map-stage button:not(:disabled){cursor:var(--map-cursor-select)}
 .city-map-stage.is-dragging,.city-map-stage.is-dragging *{cursor:var(--map-cursor-move)!important}
+.city-map-panel .city-map-article-list{padding:16px;scrollbar-gutter:stable;overflow-anchor:none}
+.city-map-article-list .city-map-article,.city-map-article-list .city-map-article:last-child{position:relative;isolation:isolate;border:1px solid var(--line);border-radius:12px;padding:14px;background:var(--card);margin-bottom:12px;transition:background-color .2s,border-color .2s}
+.city-map-article-list .city-map-article:last-child{margin-bottom:0}
+.city-map-article:is(:hover,:focus-within){background:var(--soft)}
+.city-map-article.has-cover-color{--cover-ink:color-mix(in srgb,var(--cover-color) 40%,var(--ink));--cover-tint:color-mix(in srgb,var(--cover-color) 12%,var(--card));--cover-border:color-mix(in srgb,var(--cover-color) 38%,var(--line))}
+.city-map-article.has-cover-color:is(:hover,:focus-within){background:var(--cover-tint);border-color:var(--cover-border)}
+.city-map-article.has-cover-color:is(:hover,:focus-within) h3{color:var(--cover-ink)}
+.city-map-article .article-cover-reveal{--cover-peek:108px;--cover-limit:360px;border-radius:7px;margin-bottom:14px}
+.city-map-article p:last-child{margin-bottom:0}
+.city-map-article:focus-within h3 svg{opacity:1;transform:translateX(2px)}
+@media(prefers-reduced-motion:reduce){.city-map-article-list .city-map-article{transition:none}}

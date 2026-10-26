@@ -1,5 +1,7 @@
 import { pageMetadata } from './lib/seo';
 import SiteMotion from './components/site-motion';
+import { ThemeProvider } from './components/theme';
+import { themeScript } from './lib/theme-script';
 import "./globals.css";
 import './components/site-motion.css';
 
@@ -14,7 +16,8 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="zh-CN" suppressHydrationWarning>
-      <body className="antialiased">{children}<SiteMotion/></body>
+      <head><script dangerouslySetInnerHTML={{ __html: themeScript }} /></head>
+      <body className="antialiased"><ThemeProvider>{children}<SiteMotion/></ThemeProvider></body>
     </html>
   );
 }

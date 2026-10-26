@@ -27,12 +27,29 @@ function sample(element: HTMLImageElement) {
   if (paletteCache.size >= 128) paletteCache.delete(paletteCache.keys().next().value!);
   paletteCache.set(src, color); applyColor(element, color);
 }
-export default function CardCover({ src, className='' }: { src: string; className?:string }) {
+export default function CardCover({ src, className='', expandable=false }: { src: string; className?:string; expandable?:boolean }) {
   const image = useRef<HTMLImageElement>(null);
+  const frame = useRef<HTMLSpanElement>(null);
   useEffect(() => {
     const element = image.current;
+    const container = frame.current;
+    const measure = () => {
+      if (!element?.naturalWidth || !container) return;
+      container.style.setProperty('--cover-natural-height', `${container.clientWidth * element.naturalHeight / element.naturalWidth}px`);
+    };
+    if (container) container.hidden = Boolean(element?.complete && !element.naturalWidth);
     if (element) sample(element);
-    return () => { if (element) applyColor(element, null); };
-  }, [src]);
-  return <img ref={image} onLoad={event => sample(event.currentTarget)} className={`card-cover${className?` ${className}`:''}`} src={src} alt="" width={1200} height={630} loading="lazy" decoding="async" aria-hidden="true" />;
+    measure();
+    const observer = container ? new ResizeObserver(measure) : null;
+    if (container) observer?.observe(container);
+    return () => { observer?.disconnect(); if (element) applyColor(element, null); };
+  }, [src, expandable]);
+  const cover = <img ref={image} onLoad={event => {
+    sample(event.currentTarget);
+    if (frame.current) {
+      frame.current.hidden = false;
+      frame.current.style.setProperty('--cover-natural-height', `${frame.current.clientWidth * event.currentTarget.naturalHeight / event.currentTarget.naturalWidth}px`);
+    }
+  }} onError={() => { if (frame.current) frame.current.hidden = true; }} className={`card-cover${className?` ${className}`:''}`} src={src} alt="" width={1200} height={630} loading="lazy" decoding="async" aria-hidden="true" />;
+  return expandable ? <span className="article-cover-reveal" ref={frame}>{cover}</span> : cover;
 }

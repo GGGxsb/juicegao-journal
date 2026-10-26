@@ -1,6 +1,6 @@
 'use client';
 import {useEffect,useRef,useState,type ReactNode} from 'react';
-import {Search,Sun,Moon,ChevronDown,ArrowLeft,ArrowRight,MapPin,Mail,Menu,X,UserRound,Check,Copy,Code2,Eye} from 'lucide-react';
+import {Search,ChevronDown,ArrowLeft,ArrowRight,MapPin,Mail,Menu,X,UserRound,Check,Copy,Code2,Eye} from 'lucide-react';
 import type {Post,SiteSettings,Pagination,PostStatistics,PostCollection,HomeOverview,ArticleNavigation as ArticleNavigationData} from '../lib/types';
 import {Markdown,getMarkdownHeadings} from './markdown';
 import {PageNavigation} from './pagination';
@@ -15,17 +15,17 @@ import { POST_CATEGORIES } from '../lib/post-categories';
 import './site-navigation.css';
 import PageViewTracker from './page-view-tracker';
 import type {RecordedPageView} from '../lib/analytics-types';
+import { ThemeToggle } from './theme';
 
 type View='home'|'articles'|'about'|'article'|'tags'|'map';
 type JournalProps={settings:SiteSettings;posts:Post[];view:View;article?:Post;pagination?:Pagination;stats?:PostStatistics;categories?:string[];selectedCategory?:string;selectedTag?:string;searchQuery?:string;home?:HomeOverview;navigation?:ArticleNavigationData;returnToMap?:boolean;children?:ReactNode};
 const formatDate=(value:string)=>new Date(value).toLocaleDateString('zh-CN',{year:'numeric',month:'2-digit',day:'2-digit',timeZone:'Asia/Shanghai'}).replaceAll('/','-');
 const readingTime=(content:string)=>Math.max(1,Math.ceil(content.replace(/\s/g,'').length/400));
 export default function Journal({settings,posts,view,article,pagination,stats,selectedCategory='全部',selectedTag='',searchQuery='',home,navigation,returnToMap=false,children}:JournalProps){
-  const [dark,setDark]=useState(false),[searchOpen,setSearchOpen]=useState(false),[mobileOpen,setMobileOpen]=useState(false),[query,setQuery]=useState(''),[copied,setCopied]=useState(false);
+  const [searchOpen,setSearchOpen]=useState(false),[mobileOpen,setMobileOpen]=useState(false),[query,setQuery]=useState(''),[copied,setCopied]=useState(false);
   const [traffic,setTraffic]=useState<RecordedPageView|null>(null);
   const [searchPage,setSearchPage]=useState(1),[results,setResults]=useState<PostCollection|null>(null),[searchLoading,setSearchLoading]=useState(false),[searchError,setSearchError]=useState('');
   const input=useRef<HTMLInputElement>(null),dialog=useRef<HTMLElement>(null);
-  useEffect(()=>{const saved=localStorage.getItem('journal-theme');const value=saved?saved==='dark':matchMedia('(prefers-color-scheme: dark)').matches;setDark(value);document.documentElement.dataset.theme=value?'dark':'light'},[]);
   useEffect(()=>{function keys(event:KeyboardEvent){if(event.key==='Escape'){setSearchOpen(false);setMobileOpen(false)}if((event.ctrlKey||event.metaKey)&&event.key==='k'){event.preventDefault();setSearchOpen(value=>!value)}}document.addEventListener('keydown',keys);return()=>document.removeEventListener('keydown',keys)},[]);
   useEffect(()=>{
     if(!searchOpen)return;
@@ -43,7 +43,6 @@ export default function Journal({settings,posts,view,article,pagination,stats,se
     return()=>{clearTimeout(timer);controller.abort()};
   },[searchOpen,query,searchPage]);
   function search(value:string){setQuery(value);setSearchPage(1)}
-  function toggleTheme(){setDark(!dark);document.documentElement.dataset.theme=!dark?'dark':'light';localStorage.setItem('journal-theme',!dark?'dark':'light')}
   const name=settings.name||'JuiceGao',bio=settings.bio==='记录、探索，保持好奇。'?'':settings.bio,description=settings.description==='一个记录技术、生活与灵感的个人空间。'?'':settings.description;
   function pageHref(page:number){const params=new URLSearchParams();if(selectedCategory!=='全部'&&selectedCategory)params.set('category',selectedCategory);if(selectedTag)params.set('tag',selectedTag);if(searchQuery)params.set('q',searchQuery);if(pagination&&pagination.pageSize!==15)params.set('pageSize',String(pagination.pageSize));if(page>1)params.set('page',String(page));return '/articles'+(params.size?`?${params}`:'')}
   function categoryHref(category:string){const params=new URLSearchParams();if(category!=='全部')params.set('category',category);if(selectedTag)params.set('tag',selectedTag);if(searchQuery)params.set('q',searchQuery);return '/articles'+(params.size?`?${params}`:'')}
@@ -53,7 +52,7 @@ export default function Journal({settings,posts,view,article,pagination,stats,se
   const pageNavigation=pagination&&<PageNavigation pagination={pagination} hrefForPage={pageHref} label="文章分页"/>;
   return <div className="journal">
     <PageViewTracker onRecorded={setTraffic}/>
-    <div className="site-header-shell"><header className="site-header"><a href="/" className="site-name">{name}'s Blog</a><nav className={mobileOpen?'main-nav is-open':'main-nav'} aria-label="主导航"><details className="blog-menu"><summary className={view==='articles'||view==='article'||view==='tags'?'active':''}>博客 <ChevronDown size={14}/></summary><div className="blog-dropdown">{POST_CATEGORIES.map(category=><a key={category} href={`/articles?${new URLSearchParams({category})}`} aria-current={view==="articles"&&selectedCategory===category?"page":undefined}>{category}</a>)}</div></details><a className={view==='about'?'active':''} href="/about">关于</a><a className={view==='map'?'active':''} href="/map" aria-current={view==='map'?'page':undefined}>地图</a></nav><div className="header-actions"><button className="search-trigger" onClick={()=>setSearchOpen(true)} aria-label="搜索"><Search size={16}/><span>搜索</span></button><button className="icon-button" onClick={toggleTheme} aria-label={dark?'切换浅色模式':'切换深色模式'}>{dark?<Sun size={19}/>:<Moon size={19}/>}</button><button className="icon-button mobile-toggle" onClick={()=>setMobileOpen(!mobileOpen)} aria-expanded={mobileOpen} aria-label="菜单">{mobileOpen?<X size={20}/>:<Menu size={20}/>}</button></div></header></div>
+    <div className="site-header-shell"><header className="site-header"><a href="/" className="site-name">{name}'s Blog</a><nav className={mobileOpen?'main-nav is-open':'main-nav'} aria-label="主导航"><details className="blog-menu"><summary className={view==='articles'||view==='article'||view==='tags'?'active':''}>博客 <ChevronDown size={14}/></summary><div className="blog-dropdown">{POST_CATEGORIES.map(category=><a key={category} href={`/articles?${new URLSearchParams({category})}`} aria-current={view==="articles"&&selectedCategory===category?"page":undefined}>{category}</a>)}</div></details><a className={view==='about'?'active':''} href="/about">关于</a><a className={view==='map'?'active':''} href="/map" aria-current={view==='map'?'page':undefined}>地图</a></nav><div className="header-actions"><button className="search-trigger" onClick={()=>setSearchOpen(true)} aria-label="搜索"><Search size={16}/><span>搜索</span></button><ThemeToggle/><button className="icon-button mobile-toggle" onClick={()=>setMobileOpen(!mobileOpen)} aria-expanded={mobileOpen} aria-label="菜单">{mobileOpen?<X size={20}/>:<Menu size={20}/>}</button></div></header></div>
     <main id="main-content">
       {view==='home'&&<>{profile}<HomeContent settings={settings} bio={bio} description={description} stats={stats} home={home} traffic={traffic??home?.traffic}/></>}
       {view==='articles'&&<section className="listing-page"><h1>{selectedCategory==='全部'?'博客':selectedCategory}</h1><nav className="category-tabs" aria-label="分类">{['全部',...POST_CATEGORIES].map(category=><a key={category} className={category===selectedCategory?'selected':''} href={categoryHref(category)} aria-current={category===selectedCategory?'page':undefined}>{category}</a>)}</nav><div className="listing-tools"><span>{selectedTag?`标签：${selectedTag}`:"按主题浏览记录"}</span></div>{count}{postList}{pageNavigation}</section>}
