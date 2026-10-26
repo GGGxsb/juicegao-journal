@@ -21,13 +21,18 @@
 | 搜索与分享信息 | [BaseHead.astro](https://github.com/Axi404/Axi-Theme/blob/c6470e7308bad839489932601e2be08f9b542e70/src/components/BaseHead.astro) | 页面独立标题/摘要、canonical、Open Graph、Twitter 大图卡片及文章时间 |
 | 教育经历 | [首页](https://github.com/Axi404/Axi-Theme/blob/c6470e7308bad839489932601e2be08f9b542e70/src/pages/index.astro)、[Section.astro](https://github.com/Axi404/Axi-Theme/blob/c6470e7308bad839489932601e2be08f9b542e70/src/components/home/Section.astro)、[Card.astro](https://github.com/Axi404/Axi-Theme/blob/c6470e7308bad839489932601e2be08f9b542e70/src/components/user/Card.astro) | 桌面 144px 左标题、右卡片；12px 圆角、24px / 16px 内边距；18px 学校、14px 专业、12px 等宽日期及 4px 间距；填写网址后卡片整体可点击，200ms 边框和背景过渡；768px 以下上下排列 |
 | 履历 | [Card.astro](https://github.com/Axi404/Axi-Theme/blob/c6470e7308bad839489932601e2be08f9b542e70/src/components/user/Card.astro) | 与教育经历共用卡片组件，机构、职位、日期及 Markdown 说明在卡片内纵向排列；同样的边框、间距和悬停效果 |
+| 关于页 Sponsor | [projects/index.astro](https://github.com/Axi404/Axi-Theme/blob/c6470e7308bad839489932601e2be08f9b542e70/src/pages/projects/index.astro)、[icons.ts](https://github.com/Axi404/Axi-Theme/blob/c6470e7308bad839489932601e2be08f9b542e70/src/libs/icons.ts) | 白底、12px 圆角、最大 240px 宽的微信与支付宝卡片；默认 30% 图片透明度、4px 模糊、80px 支付图标；悬停时二维码清晰，图标淡出；本站补充 300ms 双向过渡、点击固定显示、键盘聚焦、手机单列和减少动态效果 |
 | 站点统计卡片 | [Card.astro](https://github.com/Axi404/Axi-Theme/blob/c6470e7308bad839489932601e2be08f9b542e70/src/components/user/Card.astro) | 本站扩展：六项统计（含文章阅读及总访问量）分别使用 12px 圆角、1px 边框与主题背景的小卡片；桌面三列、窄屏两列；文章总数卡片可整体点击，沿用 200ms 悬停与键盘聚焦效果 |
 
 适配差异：本站保留 SQL 文章 ID 路由与后台 Markdown 写作，通过受限 directive 使用正文组件。点击粒子设有数量上限，跳过文本输入和后台；所有非必要动效尊重系统“减少动态效果”。标签页和折叠继续提供 ARIA 与键盘操作，GitHub API 失败时保留可访问的静态卡片。
 
+Sponsor 只在关于页显示，图片来自站主在「后台 → 网站资料 → 赞助二维码」上传或填写的微信、支付宝二维码。未配置的方式自动隐藏，两张都留空时整个区块隐藏。手机点击卡片可显示或收起二维码，键盘聚焦也会显示；深色模式保留二维码原始白底与颜色，避免影响扫描。二维码可长按保存，点击时跳过全站粒子效果以免遮挡。使用现有受管理员保护的图片上传与资料保存接口，未引入支付 SDK、自动支付或第三方统计。旧客户端保存其他资料时不会清空这两个新增字段；没有复制参考项目的收款码或赞助者数据。
+
 教育经历和履历共用同一卡片组件，采用标题链接覆盖卡片的方式，支持键盘聚焦，补充说明中的 Markdown 链接仍可独立访问，避免嵌套链接。履历按站主要求使用与教育经历相同的卡片布局，日期放在职位下方。资料仍来自现有 SQL 设置，首页与关于页共用组件。
 
 教育经历和履历的可选封面属于本站扩展：与文章共用 CardCover 的方向遮罩、0.5→0.7 不透明度过渡、主色提取缓存及减少动态效果适配。图片保存到现有条目 JSON 的 coverImage 字段，使用现有管理员图片上传接口；无图片的旧条目继续按纯文字卡片展示。
+
+博客列表保留右侧 60% 宽、从左向右显现的渐隐封面和左侧文字，悬停或键盘聚焦时只增加卡片高度，不切换成顶部图片。图片按原始比例展示，竖图等比适配高度上限，手机沿用右侧渐隐并直接提供完整图片所需高度；没有封面和图片失效时不产生额外展开空间。地图的独立封面展开布局、教育和履历的渐隐布局不受此扩展影响。
 
 在渐隐封面基础上，本站增加自动提取封面主色：客户端缩小采样图片并忽略透明、近黑和近白区域，将主色混合到当前主题的背景与文字中，联动卡片悬停和键盘聚焦状态；读取失败保留默认配色。这是本站的扩展实现。后台独立的 SQL 自动备份、本机离线备份与版本冲突恢复，也属于本站写作流程的扩展。
 

@@ -49,6 +49,8 @@ export const siteSettings = sqliteTable("site_settings", {
   education: text("education").notNull().default(""),
   educationEntries: text("education_entries", { mode: "json" }).$type<ResumeEntry[]>().notNull().default([]),
   experienceEntries: text("experience_entries", { mode: "json" }).$type<ResumeEntry[]>().notNull().default([]),
+  sponsorWechat: text("sponsor_wechat").notNull().default(""),
+  sponsorAlipay: text("sponsor_alipay").notNull().default(""),
   startedAt: text("started_at").notNull().default(""),
   updatedAt: text("updated_at").notNull(),
 }, (table) => [

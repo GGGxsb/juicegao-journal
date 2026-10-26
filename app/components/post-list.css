@@ -1,4 +1,4 @@
-/* Article covers expand above the summary; resume cards keep their directional image masks. */
+/* Keep the right-hand fading cover while animating the card's available height. */
 .post-list .post-item>a{display:block}
 .post-list{display:flex;flex-direction:column;gap:14px}
 .post-list .post-item,.post-list .post-item:last-child{position:relative;isolation:isolate;overflow:hidden;border:1px solid var(--line);border-radius:16px;padding:20px;background:var(--card);transition:background-color .2s ease-in-out,border-color .2s}
@@ -10,10 +10,21 @@
 .post-item.has-cover-color:hover .post-item-tags a,.post-item.has-cover-color:focus-within .post-item-tags a{background:var(--cover-tint);color:var(--cover-ink)}
 .post-summary{position:relative;z-index:1;min-width:0;overflow-wrap:anywhere}
 .post-view-count{display:inline-flex;align-items:center;gap:5px}
+.post-list .post-item.has-cover{--post-card-padding:40px}
+.post-list .post-item.has-cover>a{min-height:112px;transition:min-height .42s cubic-bezier(.22,1,.36,1)}
+.post-list .post-item.has-cover .post-summary{padding-right:22%;min-height:112px}
+.post-list .post-item .article-cover-reveal.article-cover-side{position:absolute;inset:0 0 0 auto;width:60%;height:100%;margin:0;border-radius:inherit;background:transparent;opacity:.5;pointer-events:none;-webkit-mask-image:linear-gradient(to right,transparent,#000);mask-image:linear-gradient(to right,transparent,#000);transition:opacity .3s}
+.post-list .post-item .article-cover-side .card-cover{object-position:right center}
+.post-list .post-item .article-cover-side[hidden]{display:none}
+.post-list .post-item.has-cover:focus-within>a{min-height:max(112px,calc(var(--post-cover-height,152px) - var(--post-card-padding)))}
+.post-list .post-item:focus-within .article-cover-side{opacity:.7}
+@media(hover:hover) and (pointer:fine){.post-list .post-item.has-cover:hover>a{min-height:max(112px,calc(var(--post-cover-height,152px) - var(--post-card-padding)))}.post-list .post-item:hover .article-cover-side{opacity:.7}}
+@media(hover:none),(pointer:coarse){.post-list .post-item.has-cover>a{min-height:max(112px,calc(var(--post-cover-height,152px) - var(--post-card-padding)));transition:none}}
 .post-item-tags{position:relative;z-index:1;display:flex;flex-wrap:wrap;gap:6px 12px;margin-top:12px;font-size:12px;color:var(--muted)}
 .post-item-tags a{overflow-wrap:anywhere;max-width:100%}
 .post-item-tags a:hover{color:var(--accent)}
 @media(max-width:560px){
   .post-list .post-item,.post-list .post-item:last-child{padding:16px}
+  .post-list .post-item.has-cover{--post-card-padding:32px}
 }
-@media(prefers-reduced-motion:reduce){.post-list .post-item{transition:none}}
+@media(prefers-reduced-motion:reduce){.post-list .post-item,.post-list .post-item.has-cover>a,.post-list .post-item .article-cover-side{transition:none}}

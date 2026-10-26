@@ -7,6 +7,7 @@ import {PageNavigation} from './pagination';
 import ArticleFeedback from './article-feedback';
 import HomeContent from './home-content';
 import ResumeSections from './resume-sections';
+import Sponsor from './sponsor';
 import PostList from './post-list';
 import ArticleReader from './article-reader';
 import { ArticleNavigation } from './article-navigation';
@@ -56,7 +57,7 @@ export default function Journal({settings,posts,view,article,pagination,stats,se
     <main id="main-content">
       {view==='home'&&<>{profile}<HomeContent settings={settings} bio={bio} description={description} stats={stats} home={home} traffic={traffic??home?.traffic}/></>}
       {view==='articles'&&<section className="listing-page"><h1>{selectedCategory==='全部'?'博客':selectedCategory}</h1><nav className="category-tabs" aria-label="分类">{['全部',...POST_CATEGORIES].map(category=><a key={category} className={category===selectedCategory?'selected':''} href={categoryHref(category)} aria-current={category===selectedCategory?'page':undefined}>{category}</a>)}</nav><div className="listing-tools"><span>{selectedTag?`标签：${selectedTag}`:"按主题浏览记录"}</span></div>{count}{postList}{pageNavigation}</section>}
-      {view==='about'&&<section className="about-page">{profile}<div className="about-content"><h2>关于我</h2><p>{bio||'学习经历与生活记录。'}</p>{description&&<div className="home-copy"><Markdown content={description}/></div>}<ResumeSections settings={settings}/></div></section>}
+      {view==='about'&&<section className="about-page">{profile}<div className="about-content"><h2>关于我</h2><p>{bio||'学习经历与生活记录。'}</p>{description&&<div className="home-copy"><Markdown content={description}/></div>}<ResumeSections settings={settings}/><Sponsor wechat={settings.sponsorWechat} alipay={settings.sponsorAlipay}/></div></section>}
       {(view==='tags'||view==='map')&&children}
       {view==='article'&&article&&<article className="reading-layout">
         <div className="article-main" data-article-main>

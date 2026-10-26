@@ -24,6 +24,8 @@ export const DEFAULT_SETTINGS: SiteSettings = {
   // Each read receives its own mutable array, including {...DEFAULT_SETTINGS}.
   get educationEntries() { return []; },
   get experienceEntries() { return []; },
+  sponsorWechat: "",
+  sponsorAlipay: "",
   startedAt: "",
 };
 
@@ -240,6 +242,8 @@ const settingsSchema = z.object({
   // Do not default these here: older clients must not erase saved resume groups.
   educationEntries: resumeEntriesSchema.optional(),
   experienceEntries: resumeEntriesSchema.optional(),
+  sponsorWechat: z.string().trim().max(2048).refine(value => !value || Boolean(resumeImageUrl(value)), "微信二维码必须是本站图片路径或不含账号密码的 HTTPS 图片地址。").optional(),
+  sponsorAlipay: z.string().trim().max(2048).refine(value => !value || Boolean(resumeImageUrl(value)), "支付宝二维码必须是本站图片路径或不含账号密码的 HTTPS 图片地址。").optional(),
   startedAt: z.union([z.literal(""), z.string().regex(/^\d{4}-\d{2}-\d{2}$/).refine(value => {
     const parsed = new Date(`${value}T00:00:00.000Z`);
     return Number.isFinite(parsed.getTime()) && parsed.toISOString().slice(0, 10) === value && value <= new Intl.DateTimeFormat('en-CA', {timeZone:'Asia/Shanghai',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
@@ -291,7 +295,7 @@ export async function deletePost(id: string): Promise<void> {
 }
 
 export async function saveSettings(input: SettingsInput): Promise<SiteSettings> {
-  const { educationEntries: educationInput, experienceEntries: experienceInput, ...fields } = input;
+  const { educationEntries: educationInput, experienceEntries: experienceInput, sponsorWechat, sponsorAlipay, ...fields } = input;
   const previous=await getSettings();
   const covers=(entries:SiteSettings['educationEntries']|undefined,saved:SiteSettings['educationEntries'])=>{
     const images=new Map(saved.map(entry=>[entry.id,entry.coverImage]));
@@ -302,10 +306,13 @@ export async function saveSettings(input: SettingsInput): Promise<SiteSettings> 
   await getDb().insert(siteSettings).values({
     ...fields, id: "site", updatedAt,
     educationEntries: educationEntries ?? [], experienceEntries: experienceEntries ?? [],
+    sponsorWechat: sponsorWechat ?? "", sponsorAlipay: sponsorAlipay ?? "",
   }).onConflictDoUpdate({ target: siteSettings.id, set: {
     ...fields, updatedAt,
     ...(educationEntries !== undefined ? { educationEntries } : {}),
     ...(experienceEntries !== undefined ? { experienceEntries } : {}),
+    ...(sponsorWechat !== undefined ? { sponsorWechat } : {}),
+    ...(sponsorAlipay !== undefined ? { sponsorAlipay } : {}),
   } });
   return getSettings();
 }

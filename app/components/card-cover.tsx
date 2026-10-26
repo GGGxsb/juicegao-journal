@@ -27,7 +27,17 @@ function sample(element: HTMLImageElement) {
   if (paletteCache.size >= 128) paletteCache.delete(paletteCache.keys().next().value!);
   paletteCache.set(src, color); applyColor(element, color);
 }
-export default function CardCover({ src, className='', expandable=false }: { src: string; className?:string; expandable?:boolean }) {
+function measureCover(element: HTMLImageElement, container: HTMLSpanElement, side: boolean) {
+  if (!element.naturalWidth) return;
+  const height = container.clientWidth * element.naturalHeight / element.naturalWidth;
+  container.style.setProperty('--cover-natural-height', `${height}px`);
+  if (side) {
+    const limit = parseFloat(getComputedStyle(container).getPropertyValue('--cover-limit')) || 520;
+    container.closest<HTMLElement>('[data-cover-card]')?.style.setProperty('--post-cover-height', `${Math.min(height, limit)}px`);
+  }
+}
+
+export default function CardCover({ src, className='', expandable=false }: { src: string; className?:string; expandable?:boolean | 'side' }) {
   const image = useRef<HTMLImageElement>(null);
   const frame = useRef<HTMLSpanElement>(null);
   useEffect(() => {
@@ -35,21 +45,30 @@ export default function CardCover({ src, className='', expandable=false }: { src
     const container = frame.current;
     const measure = () => {
       if (!element?.naturalWidth || !container) return;
-      container.style.setProperty('--cover-natural-height', `${container.clientWidth * element.naturalHeight / element.naturalWidth}px`);
+      measureCover(element, container, expandable === 'side');
     };
     if (container) container.hidden = Boolean(element?.complete && !element.naturalWidth);
     if (element) sample(element);
     measure();
     const observer = container ? new ResizeObserver(measure) : null;
     if (container) observer?.observe(container);
-    return () => { observer?.disconnect(); if (element) applyColor(element, null); };
+    return () => {
+      observer?.disconnect();
+      if (element) applyColor(element, null);
+      if (expandable === 'side') container?.closest<HTMLElement>('[data-cover-card]')?.style.removeProperty('--post-cover-height');
+    };
   }, [src, expandable]);
   const cover = <img ref={image} onLoad={event => {
     sample(event.currentTarget);
     if (frame.current) {
       frame.current.hidden = false;
-      frame.current.style.setProperty('--cover-natural-height', `${frame.current.clientWidth * event.currentTarget.naturalHeight / event.currentTarget.naturalWidth}px`);
+      measureCover(event.currentTarget, frame.current, expandable === 'side');
     }
-  }} onError={() => { if (frame.current) frame.current.hidden = true; }} className={`card-cover${className?` ${className}`:''}`} src={src} alt="" width={1200} height={630} loading="lazy" decoding="async" aria-hidden="true" />;
-  return expandable ? <span className="article-cover-reveal" ref={frame}>{cover}</span> : cover;
+  }} onError={() => {
+    if (frame.current) {
+      frame.current.hidden = true;
+      if (expandable === 'side') frame.current.closest<HTMLElement>('[data-cover-card]')?.style.removeProperty('--post-cover-height');
+    }
+  }} className={`card-cover${className?` ${className}`:''}`} src={src} alt="" width={1200} height={630} loading="lazy" decoding="async" aria-hidden="true" />;
+  return expandable ? <span className={`article-cover-reveal${expandable === 'side' ? ' article-cover-side' : ''}`} ref={frame}>{cover}</span> : cover;
 }

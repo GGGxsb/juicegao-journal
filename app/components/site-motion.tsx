@@ -42,7 +42,7 @@ export default function SiteMotion() {
     const darkColors = ['#ff6b8a','#4fc3f7','#ffd54f','#ba68c8','#81c784','#ffb74d','#64b5f6','#f48fb1','#a5d6a7','#ffe082'];
     const burst = (event: MouseEvent) => {
       if (preference.matches || event.detail === 0 || event.button !== 0 || !(event.target instanceof Element)) return;
-      if (!event.target.closest('.journal') || event.target.closest('input,textarea,select,[contenteditable=true],.search-dialog')) return;
+      if (!event.target.closest('.journal') || event.target.closest('input,textarea,select,[contenteditable=true],.search-dialog,.sponsor-card')) return;
       const palette = document.documentElement.dataset.theme === 'dark' ? darkColors : colors;
       for (let i = 0; i < 14 && particles.size < 84; i++) {
         const angle = i < 10 ? Math.PI * 2 * i / 10 : Math.random() * Math.PI * 2;

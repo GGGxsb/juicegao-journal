@@ -1,0 +1,17 @@
+/* Matches Axi-Theme's white QR cards, 80px icons, 4px blur and 30% resting opacity. */
+.about-sponsor{margin-top:48px;padding-top:32px;border-top:1px solid var(--line);scroll-margin-top:110px}
+.about-sponsor>h2{font-size:24px;line-height:32px;font-weight:600;margin:0 0 24px}
+.sponsor-methods{display:flex;justify-content:center;gap:16px;align-items:flex-start}
+.sponsor-method{margin:0;min-width:0;width:240px;max-width:100%}
+.sponsor-card{display:block;position:relative;isolation:isolate;overflow:hidden;width:100%;min-height:180px;padding:0;border:1px solid var(--line);border-radius:12px;background:#fff;color:#111827;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.sponsor-card>img{display:block;margin:0 auto;width:100%;height:auto;opacity:.3;filter:blur(4px);transition:opacity .3s ease,filter .3s ease}
+.sponsor-card>img[hidden]{display:none}
+.sponsor-logo{position:absolute;inset:0;display:grid;place-items:center;transition:opacity .3s ease;pointer-events:none}
+.sponsor-logo>svg{width:80px;height:80px}
+.sponsor-card:is(.is-revealed,:focus-visible)>img{opacity:1;filter:blur(0)}
+.sponsor-card:is(.is-revealed,:focus-visible)>.sponsor-logo{opacity:0}
+.sponsor-method figcaption{margin-top:12px;text-align:center;color:var(--muted);font-size:13px}
+.sponsor-image-error{display:grid;place-items:center;min-height:180px;padding:20px;color:#6b7280;font-size:13px}
+@media(hover:hover) and (pointer:fine){.sponsor-card:hover>img{opacity:1;filter:blur(0)}.sponsor-card:hover>.sponsor-logo{opacity:0}}
+@media(max-width:560px){.about-sponsor{margin-top:36px;padding-top:26px}.about-sponsor>h2{font-size:22px;margin-bottom:20px}.sponsor-methods{flex-direction:column;align-items:center;gap:24px}}
+@media(prefers-reduced-motion:reduce){.sponsor-card>img,.sponsor-logo{transition:none}}

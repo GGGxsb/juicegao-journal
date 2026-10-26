@@ -61,12 +61,14 @@ export interface SiteSettings {
   education: string;
   educationEntries: ResumeEntry[];
   experienceEntries: ResumeEntry[];
+  sponsorWechat: string;
+  sponsorAlipay: string;
   startedAt: string;
 }
 
-/** Omitted resume groups preserve existing entries; an explicit [] clears one. */
-export type SettingsInput = Omit<SiteSettings, "educationEntries" | "experienceEntries"> &
-  Partial<Pick<SiteSettings, "educationEntries" | "experienceEntries">>;
+/** Omitted optional settings preserve saved values; explicit empty values clear them. */
+export type SettingsInput = Omit<SiteSettings, "educationEntries" | "experienceEntries" | "sponsorWechat" | "sponsorAlipay"> &
+  Partial<Pick<SiteSettings, "educationEntries" | "experienceEntries" | "sponsorWechat" | "sponsorAlipay">>;
 
 export interface HomeOverview {
   today: string;
