@@ -99,12 +99,15 @@ try {
     .run('map-test-admin', legacyId, legacyId, JSON.stringify(oldEditor), stamp, 1, stamp);
   const tables = database.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' AND name != '__journal_migrations' ORDER BY name").all().map(row => row.name);
   const before = new Map(tables.map(name => [name, database.prepare(`SELECT * FROM "${name}" ORDER BY rowid`).all().map(row => ({ ...row }))]));
-  assert.equal(sqliteRuntime.migrateDatabase(migrationDirectory).applied, migrations.length - cityMigration);
+  // Check the city migration in isolation: later profile migrations intentionally add settings/defaults.
+  copyFileSync(path.join(migrationDirectory, migrations[cityMigration]), path.join(oldMigrations, migrations[cityMigration]));
+  assert.equal(sqliteRuntime.migrateDatabase(oldMigrations).applied, 1);
   for (const name of tables) {
-    const expected = before.get(name).map(row => name === 'posts' ? { ...row, city_ids: '[]', view_count: 0 } : row);
+    const expected = before.get(name).map(row => name === 'posts' ? { ...row, city_ids: '[]' } : row);
     assert.deepEqual(database.prepare(`SELECT * FROM "${name}" ORDER BY rowid`).all().map(row => ({ ...row })), expected, `${name} changed during the map migration`);
   }
   assert.deepEqual(database.prepare('PRAGMA foreign_key_check').all(), []);
+  assert.equal(sqliteRuntime.migrateDatabase(migrationDirectory).applied, migrations.length - cityMigration - 1);
   assert.equal(sqliteRuntime.migrateDatabase(migrationDirectory).applied, 0);
   passed('appended migration preserves articles, administrator accounts/sessions, settings, comments, likes and pending writing');
 

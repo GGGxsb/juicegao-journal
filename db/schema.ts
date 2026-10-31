@@ -69,6 +69,8 @@ export const media = sqliteTable("media", {
   originalName: text("original_name").notNull(),
   contentType: text("content_type").notNull(),
   size: integer("size").notNull(),
+  width: integer("width"),
+  height: integer("height"),
   createdByUserId: text("created_by_user_id").notNull(),
   createdAt: text("created_at").notNull(),
 }, (table) => [uniqueIndex("media_key_unique").on(table.key)]);

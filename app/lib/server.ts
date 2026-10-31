@@ -10,6 +10,7 @@ import { DEFAULT_POST_CATEGORY, POST_CATEGORIES, type PostCategory } from "./pos
 import { cityIdsSchema } from "./draft-state";
 import {resumeImageUrl} from './resume-image';
 import { DEFAULT_SOCIAL_LINKS, socialProfileUrl, type SocialPlatform } from './social-links';
+import { readImageDimensions, withCoverDimensions } from './media-dimensions';
 export { getAdminSession, requireAdmin, ApiError };
 import type { MapPost, Post, PostCollection, PostInput, PostStatus, SettingsInput, SiteSettings } from "./types";
 
@@ -143,7 +144,7 @@ export async function queryPosts(options: PostQueryOptions = {}): Promise<PostCo
   const pagePosts = await db.select().from(posts).where(where)
     .orderBy(...ordering)
     .limit(value.pageSize).offset((page - 1) * value.pageSize);
-  return { posts: pagePosts, pagination: { page, pageSize: value.pageSize, total, totalPages }, ...overview };
+  return { posts: await withCoverDimensions(pagePosts), pagination: { page, pageSize: value.pageSize, total, totalPages }, ...overview };
 }
 
 /** Every published article is available to the map without transferring bodies. */
@@ -401,12 +402,14 @@ export async function uploadImage(request: Request, user: AdminPrincipal): Promi
   const body = await file.arrayBuffer();
   const actualType = detectedImageType(new Uint8Array(body));
   if (!actualType || actualType !== declared) throw new ApiError(415, "图片内容与文件类型不匹配，请重新导出图片。");
+  const dimensions = readImageDimensions(new Uint8Array(body));
+  if (!dimensions) throw new ApiError(415, "无法识别图片尺寸，请重新导出 PNG、JPG、WebP 或 GIF 图片。");
   const id = crypto.randomUUID();
   const key = `${id}.${imageTypes[actualType]}`;
   await env.BUCKET.put(key, body, { httpMetadata: { contentType: actualType, cacheControl: "public, max-age=31536000, immutable" } });
   try {
     await getDb().insert(media).values({ id, key, originalName: file.name.slice(0, 255), contentType: actualType,
-      size: file.size, createdByUserId: user.userId, createdAt: new Date().toISOString() });
+      size: file.size, width: dimensions.width, height: dimensions.height, createdByUserId: user.userId, createdAt: new Date().toISOString() });
   } catch (error) { await env.BUCKET.delete(key); throw error; }
   return `/media/${key}`;
 }

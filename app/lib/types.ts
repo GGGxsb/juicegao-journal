@@ -1,5 +1,6 @@
 import type { PostCategory } from "./post-categories";
 import type { TrafficTotals } from './analytics-types';
+import type { CoverSize } from './post-cover-layout';
 
 export type PostStatus = "draft" | "published";
 
@@ -13,6 +14,8 @@ export interface Post {
   cityIds: string[];
   status: PostStatus;
   coverImage: string;
+  /** Read-only image metadata supplied by article listings. */
+  coverSize?: CoverSize;
   viewCount: number;
   publishedAt: string;
   createdAt: string;

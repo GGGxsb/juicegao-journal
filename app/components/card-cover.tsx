@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useRef } from 'react';
 import { dominantCoverColor } from '../lib/cover-palette';
+import { validCoverSize, type CoverSize } from '../lib/post-cover-layout';
 import './card-cover.css';
 
 const paletteCache = new Map<string, string | null>();
@@ -27,22 +28,14 @@ function sample(element: HTMLImageElement) {
   if (paletteCache.size >= 128) paletteCache.delete(paletteCache.keys().next().value!);
   paletteCache.set(src, color); applyColor(element, color);
 }
-function measureCover(element: HTMLImageElement, container: HTMLSpanElement, side: boolean, width = container.clientWidth) {
+function measureCover(element: HTMLImageElement, container: HTMLSpanElement, width = container.clientWidth) {
   if (!element.naturalWidth) return;
   const height = width * element.naturalHeight / element.naturalWidth;
-  // Read the limit before changing styles. Height-only resize notifications are ignored below.
-  const limit = side ? parseFloat(getComputedStyle(container).getPropertyValue('--cover-limit')) || 520 : 0;
-  const set = (target: HTMLElement, property: string, value: string) => {
-    if (target.style.getPropertyValue(property) !== value) target.style.setProperty(property, value);
-  };
-  set(container, '--cover-natural-height', `${height}px`);
-  if (side) {
-    const card = container.closest<HTMLElement>('[data-cover-card]');
-    if (card) set(card, '--post-cover-height', `${Math.min(height, limit)}px`);
-  }
+  const value = `${height}px`;
+  if (container.style.getPropertyValue('--cover-natural-height') !== value) container.style.setProperty('--cover-natural-height', value);
 }
 
-export default function CardCover({ src, className='', expandable=false }: { src: string; className?:string; expandable?:boolean | 'side' }) {
+export default function CardCover({ src, className='', expandable=false, dimensions }: { src: string; className?:string; expandable?:boolean; dimensions?:CoverSize }) {
   const image = useRef<HTMLImageElement>(null);
   const frame = useRef<HTMLSpanElement>(null);
   useEffect(() => {
@@ -53,7 +46,7 @@ export default function CardCover({ src, className='', expandable=false }: { src
       if (!element?.naturalWidth || !container) return;
       if (Math.abs(lastWidth - width) < .5) return;
       lastWidth = width;
-      measureCover(element, container, expandable === 'side', width);
+      measureCover(element, container, width);
     };
     if (container) container.hidden = Boolean(element?.complete && !element.naturalWidth);
     if (element) sample(element);
@@ -66,20 +59,21 @@ export default function CardCover({ src, className='', expandable=false }: { src
     return () => {
       observer?.disconnect();
       if (element) applyColor(element, null);
-      if (expandable === 'side') container?.closest<HTMLElement>('[data-cover-card]')?.style.removeProperty('--post-cover-height');
     };
   }, [src, expandable]);
+  const size = validCoverSize(dimensions) ? dimensions : { width: 1200, height: 630 };
   const cover = <img ref={image} onLoad={event => {
+    event.currentTarget.hidden = false;
     sample(event.currentTarget);
     if (frame.current) {
       frame.current.hidden = false;
-      measureCover(event.currentTarget, frame.current, expandable === 'side');
+      measureCover(event.currentTarget, frame.current);
     }
-  }} onError={() => {
+  }} onError={event => {
+    event.currentTarget.hidden = true;
     if (frame.current) {
       frame.current.hidden = true;
-      if (expandable === 'side') frame.current.closest<HTMLElement>('[data-cover-card]')?.style.removeProperty('--post-cover-height');
     }
-  }} className={`card-cover${className?` ${className}`:''}`} src={src} alt="" width={1200} height={630} loading="lazy" decoding="async" aria-hidden="true" />;
-  return expandable ? <span className={`article-cover-reveal${expandable === 'side' ? ' article-cover-side' : ''}`} ref={frame}>{cover}</span> : cover;
+  }} className={`card-cover${className?` ${className}`:''}`} src={src} alt="" width={size.width} height={size.height} loading="lazy" decoding="async" aria-hidden="true" />;
+  return expandable ? <span className="article-cover-reveal" ref={frame}>{cover}</span> : cover;
 }
