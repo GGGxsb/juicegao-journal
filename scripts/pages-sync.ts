@@ -1,6 +1,7 @@
 import { mkdir, writeFile, rename } from 'node:fs/promises';
 import path from 'node:path';
 import { randomUUID, createHash } from 'node:crypto';
+import { setTimeout as pause } from 'node:timers/promises';
 import { pagesSnapshotSchema, pagesGithubSchema } from '../app/lib/pages-snapshot';
 class SyncHttpError extends Error { constructor(public status:number,resource:string){super(`Sync failed: HTTP ${status} at ${resource}`);} }
 
@@ -10,7 +11,7 @@ if(!raw)throw new Error('Set PAGES_SOURCE_URL to the Tencent website HTTPS origi
 const source=new URL(raw);
 if(source.username||source.password||source.search||source.hash||source.pathname!=='/'||!(source.protocol==='https:'||(source.protocol==='http:'&&['127.0.0.1','localhost','[::1]'].includes(source.hostname))))throw new Error('PAGES_SOURCE_URL must be an HTTPS origin without credentials, path or query.');
 
-async function download(url:URL,limit:number) {
+async function downloadOnce(url:URL,limit:number) {
   const response=await fetch(url,{redirect:'error',signal:AbortSignal.timeout(90000),headers:{accept:'application/json,image/*'}});
   if(!response.ok){await response.body?.cancel();throw new SyncHttpError(response.status,url.pathname);}
   if(Number(response.headers.get('content-length')||0)>limit)throw new Error(`Response too large at ${url.pathname}`);
@@ -21,6 +22,19 @@ async function download(url:URL,limit:number) {
   catch(error){await reader.cancel().catch(()=>{});throw error;}
   finally{reader.releaseLock();}
   return Buffer.concat(chunks);
+}
+
+async function download(url:URL,limit:number):Promise<Buffer> {
+  for(let attempt=0;;attempt++){
+    try{return await downloadOnce(url,limit);}
+    catch(error){
+      const code=error instanceof Error&&error.cause&&typeof error.cause==='object'&&'code' in error.cause?String(error.cause.code):'';
+      const transient=error instanceof SyncHttpError?[429,502,503,504].includes(error.status):['ECONNRESET','ECONNREFUSED','ETIMEDOUT','EAI_AGAIN','ENOTFOUND','UND_ERR_SOCKET','UND_ERR_CONNECT_TIMEOUT'].includes(code)||(error instanceof Error&&error.name==='TimeoutError');
+      if(!transient||attempt>=3)throw error;
+      console.warn(`Retrying ${url.pathname} after a temporary connection failure (${attempt+2}/4).`);
+      await pause([1000,3000,7000][attempt]);
+    }
+  }
 }
 
 const readJson=async(resource:string)=>JSON.parse((await download(new URL(resource,source),64*1024*1024)).toString('utf8'));
