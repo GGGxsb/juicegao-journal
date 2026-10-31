@@ -27,13 +27,18 @@ function sample(element: HTMLImageElement) {
   if (paletteCache.size >= 128) paletteCache.delete(paletteCache.keys().next().value!);
   paletteCache.set(src, color); applyColor(element, color);
 }
-function measureCover(element: HTMLImageElement, container: HTMLSpanElement, side: boolean) {
+function measureCover(element: HTMLImageElement, container: HTMLSpanElement, side: boolean, width = container.clientWidth) {
   if (!element.naturalWidth) return;
-  const height = container.clientWidth * element.naturalHeight / element.naturalWidth;
-  container.style.setProperty('--cover-natural-height', `${height}px`);
+  const height = width * element.naturalHeight / element.naturalWidth;
+  // Read the limit before changing styles. Height-only resize notifications are ignored below.
+  const limit = side ? parseFloat(getComputedStyle(container).getPropertyValue('--cover-limit')) || 520 : 0;
+  const set = (target: HTMLElement, property: string, value: string) => {
+    if (target.style.getPropertyValue(property) !== value) target.style.setProperty(property, value);
+  };
+  set(container, '--cover-natural-height', `${height}px`);
   if (side) {
-    const limit = parseFloat(getComputedStyle(container).getPropertyValue('--cover-limit')) || 520;
-    container.closest<HTMLElement>('[data-cover-card]')?.style.setProperty('--post-cover-height', `${Math.min(height, limit)}px`);
+    const card = container.closest<HTMLElement>('[data-cover-card]');
+    if (card) set(card, '--post-cover-height', `${Math.min(height, limit)}px`);
   }
 }
 
@@ -43,14 +48,20 @@ export default function CardCover({ src, className='', expandable=false }: { src
   useEffect(() => {
     const element = image.current;
     const container = frame.current;
-    const measure = () => {
+    let lastWidth = -1;
+    const measure = (width: number) => {
       if (!element?.naturalWidth || !container) return;
-      measureCover(element, container, expandable === 'side');
+      if (Math.abs(lastWidth - width) < .5) return;
+      lastWidth = width;
+      measureCover(element, container, expandable === 'side', width);
     };
     if (container) container.hidden = Boolean(element?.complete && !element.naturalWidth);
     if (element) sample(element);
-    measure();
-    const observer = container ? new ResizeObserver(measure) : null;
+    if (container) measure(container.clientWidth);
+    const observer = container ? new ResizeObserver(entries => {
+      const entry = entries[0];
+      if (entry) measure(entry.contentRect.width);
+    }) : null;
     if (container) observer?.observe(container);
     return () => {
       observer?.disconnect();

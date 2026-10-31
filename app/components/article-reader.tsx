@@ -4,6 +4,7 @@ import { useEffect, useRef, useState, type MouseEvent } from 'react';
 import { createPortal } from 'react-dom';
 import { ArrowUp, List, X, ZoomOut } from 'lucide-react';
 import type { MarkdownHeading } from './markdown';
+import { observeReadingProgress } from './reader-progress';
 import './article-reader.css';
 
 type ReaderOverlay = { kind: 'toc' } | { kind: 'image'; src: string; alt: string };
@@ -41,35 +42,10 @@ export default function ArticleReader({ postId, headings }: { postId: string; he
     const body = document.querySelector<HTMLElement>('[data-article-body]');
     const main = body?.closest<HTMLElement>('[data-article-main]');
     if (!body || !main) return;
-    let frame = 0;
     const ids = headingIds ? headingIds.split('\u0000') : [];
     const sections = ids.map(id => body.querySelector<HTMLElement>(`[id="${CSS.escape(id)}"]`)).filter((element): element is HTMLElement => Boolean(element));
     const originalImages = new Map<HTMLImageElement, { attributes: Record<string, string | null>; enhanced: boolean }>();
 
-    const measure = () => {
-      frame = 0;
-      const bodyBounds = body.getBoundingClientRect();
-      const readingLine = Math.min(160, Math.max(64, window.innerHeight * 0.2));
-      const bodyTop = bodyBounds.top + window.scrollY;
-      const start = Math.max(0, bodyTop - readingLine);
-      const finish = bodyTop + bodyBounds.height - window.innerHeight + 24;
-      // A short body is finished once its bottom is visible; tall bodies start at the reading line.
-      const percentage = finish <= start
-        ? (bodyBounds.bottom <= window.innerHeight - 24 ? 100 : 0)
-        : Math.round(Math.min(1, Math.max(0, (window.scrollY - start) / (finish - start))) * 100);
-      setProgress(percentage);
-      setPastTop(window.scrollY > 180);
-      let current = sections[0]?.id ?? '';
-      for (const section of sections) {
-        if (section.getBoundingClientRect().top > readingLine + 8) break;
-        current = section.id;
-      }
-      if (bodyBounds.bottom <= window.innerHeight && percentage === 100 && sections.length) current = sections[sections.length - 1].id;
-      setActiveId(current);
-    };
-    const scheduleMeasure = () => {
-      if (!frame) frame = requestAnimationFrame(measure);
-    };
     const enhanceImages = () => {
       for (const image of main.querySelectorAll<HTMLImageElement>('.article-cover, [data-article-body] img:not([data-reader-skip])')) {
         if (originalImages.has(image)) continue;
@@ -99,25 +75,17 @@ export default function ArticleReader({ postId, headings }: { postId: string; he
       setOverlay({ kind: 'image', src: image.currentSrc || image.src, alt: image.alt.trim() || '文章图片' });
     };
     enhanceImages();
-    measure();
-    window.addEventListener('scroll', scheduleMeasure, { passive: true });
-    window.addEventListener('resize', scheduleMeasure, { passive: true });
-    main.addEventListener('load', scheduleMeasure, true);
+    const progressObserver = observeReadingProgress(body, main, sections, state => {
+      setProgress(state.progress); setPastTop(state.pastTop); setActiveId(state.activeId);
+    });
     main.addEventListener('click', openImage);
     main.addEventListener('keydown', openImage);
-    const observer = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(scheduleMeasure);
-    observer?.observe(body);
-    observer?.observe(main);
-    const imagesObserver = new MutationObserver(() => { enhanceImages(); scheduleMeasure(); });
+    const imagesObserver = new MutationObserver(() => { enhanceImages(); progressObserver.invalidate(); });
     imagesObserver.observe(body, { childList: true, subtree: true });
     return () => {
-      cancelAnimationFrame(frame);
-      window.removeEventListener('scroll', scheduleMeasure);
-      window.removeEventListener('resize', scheduleMeasure);
-      main.removeEventListener('load', scheduleMeasure, true);
+      progressObserver.disconnect();
       main.removeEventListener('click', openImage);
       main.removeEventListener('keydown', openImage);
-      observer?.disconnect();
       imagesObserver.disconnect();
       for (const [image, original] of originalImages) {
         if (!original.enhanced) image.classList.remove('reader-zoomable');
@@ -218,7 +186,7 @@ export default function ArticleReader({ postId, headings }: { postId: string; he
       <div className="reader-sidebar-heading"><span>{headings.length ? '文章目录' : '阅读工具'}</span>{headings.length > 0 && <span className="reader-section-count">{headings.length}</span>}</div>
       {headings.length > 0 && toc(false)}
       <div className="reader-progress-caption"><span>阅读进度</span><span>{progress}%</span></div>
-      <div className="reader-progress-track" role="progressbar" aria-label="文章阅读进度" aria-valuemin={0} aria-valuemax={100} aria-valuenow={progress}><span style={{ width: `${progress}%` }} /></div>
+      <div className="reader-progress-track" role="progressbar" aria-label="文章阅读进度" aria-valuemin={0} aria-valuemax={100} aria-valuenow={progress}><span style={{ transform: `scaleX(${progress / 100})` }} /></div>
     </aside>
     <div className={`reader-floating-tools${pastTop ? ' is-scrolled' : ''}`} role="group" aria-label="文章阅读操作">
       {headings.length > 0 && <button className="reader-mobile-toc" type="button" aria-label="打开文章目录" aria-haspopup="dialog" aria-expanded={overlay?.kind === 'toc'} aria-controls={tocId} onClick={event => { returnFocus.current = event.currentTarget; setOverlay({ kind: 'toc' }); }}><List size={19} aria-hidden="true" /><span>目录</span></button>}

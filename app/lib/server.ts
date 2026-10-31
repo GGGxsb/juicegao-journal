@@ -237,7 +237,7 @@ const settingsSchema = z.object({
   bio: z.string().trim().max(300),
   description: z.string().trim().max(3000),
   avatar: imageUrlSchema,
-  homeBackground: z.string().trim().max(2048).refine(value => !value || Boolean(resumeImageUrl(value)), "首页背景必须是本站图片路径或不含账号密码的 HTTPS 图片地址。").optional(),
+  homeBackground: z.string().trim().max(2048).refine(value => !value || Boolean(resumeImageUrl(value)), "背景必须是本站图片路径或不含账号密码的 HTTPS 图片地址。").optional(),
   xiaohongshu: socialLinkSchema('xiaohongshu', '小红书'),
   bilibili: socialLinkSchema('bilibili', 'B站'),
   douyin: socialLinkSchema('douyin', '抖音'),

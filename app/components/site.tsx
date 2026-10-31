@@ -7,7 +7,7 @@ import {PageNavigation} from './pagination';
 import ArticleFeedback from './article-feedback';
 import HomeContent from './home-content';
 import Profile from './profile';
-import { resumeImageUrl } from '../lib/resume-image';
+import SiteBackdrop from './site-backdrop';
 import ResumeSections from './resume-sections';
 import Sponsor from './sponsor';
 import PostList from './post-list';
@@ -50,13 +50,11 @@ export default function Journal({settings,posts,view,article,pagination,stats,se
   function pageHref(page:number){const params=new URLSearchParams();if(selectedCategory!=='全部'&&selectedCategory)params.set('category',selectedCategory);if(selectedTag)params.set('tag',selectedTag);if(searchQuery)params.set('q',searchQuery);if(pagination&&pagination.pageSize!==15)params.set('pageSize',String(pagination.pageSize));if(page>1)params.set('page',String(page));return '/articles'+(params.size?`?${params}`:'')}
   function categoryHref(category:string){const params=new URLSearchParams();if(category!=='全部')params.set('category',category);if(selectedTag)params.set('tag',selectedTag);if(searchQuery)params.set('q',searchQuery);return '/articles'+(params.size?`?${params}`:'')}
   const profile=<Profile settings={settings} name={name} home={view==='home'}/>;
-  const homeBackground=resumeImageUrl(settings.homeBackground);
   const postList=<PostList posts={posts}/>;
   const count=pagination&&<p className="listing-count">{searchQuery&&<>“{searchQuery}” · </>}共 {pagination.total} 篇{pagination.totalPages>1&&<> · 第 {pagination.page} / {pagination.totalPages} 页</>}</p>;
   const pageNavigation=pagination&&<PageNavigation pagination={pagination} hrefForPage={pageHref} label="文章分页"/>;
-  return <div className="journal">
+  return <div className="site-page"><SiteBackdrop src={settings.homeBackground}/><div className="journal">
     <PageViewTracker onRecorded={setTraffic}/>
-    {view==='home'&&<div className="home-backdrop" aria-hidden="true">{homeBackground&&<img src={homeBackground} alt="" fetchPriority="high"/>}</div>}
     <div className="site-header-shell"><header className="site-header"><a href="/" className="site-name">{name}'s Blog</a><nav className={mobileOpen?'main-nav is-open':'main-nav'} aria-label="主导航"><details className="blog-menu"><summary className={view==='articles'||view==='article'||view==='tags'?'active':''}>博客 <ChevronDown size={14}/></summary><div className="blog-dropdown">{POST_CATEGORIES.map(category=><a key={category} href={`/articles?${new URLSearchParams({category})}`} aria-current={view==="articles"&&selectedCategory===category?"page":undefined}>{category}</a>)}</div></details><a className={view==='about'?'active':''} href="/about">关于</a><a className={view==='map'?'active':''} href="/map" aria-current={view==='map'?'page':undefined}>地图</a></nav><div className="header-actions"><button className="search-trigger" onClick={()=>setSearchOpen(true)} aria-label="搜索"><Search size={16}/><span>搜索</span></button><ThemeToggle/><button className="icon-button mobile-toggle" onClick={()=>setMobileOpen(!mobileOpen)} aria-expanded={mobileOpen} aria-label="菜单">{mobileOpen?<X size={20}/>:<Menu size={20}/>}</button></div></header></div>
     <main id="main-content">
       {view==='home'&&<>{profile}<HomeContent settings={settings} bio={bio} description={description} stats={stats} home={home} traffic={traffic??home?.traffic}/></>}
@@ -80,5 +78,5 @@ export default function Journal({settings,posts,view,article,pagination,stats,se
     </main>
     <footer className="site-footer"><span>© {new Date().getFullYear()} {name}</span><a href="/admin">管理</a></footer>
     {searchOpen&&<div className="search-backdrop" onClick={()=>setSearchOpen(false)}><section className="search-dialog" ref={dialog} role="dialog" aria-modal="true" aria-label="搜索" onClick={event=>event.stopPropagation()}><div className="search-input-row"><Search size={19}/><input ref={input} value={query} onChange={event=>search(event.target.value)} placeholder="搜索" aria-label="搜索关键词" maxLength={200}/><button aria-label="关闭搜索" onClick={()=>setSearchOpen(false)}><X size={19}/></button></div><div className="search-results" aria-busy={searchLoading}>{searchLoading?<p className="empty-state" role="status">正在搜索…</p>:searchError?<p className="feedback-error" role="alert">{searchError}</p>:!query.trim()?<p className="empty-state">输入关键词搜索</p>:results?.posts.length?results.posts.map(post=><a key={post.id} href={postHref(post)}><strong>{post.title}</strong><time>{formatDate(post.publishedAt)}</time></a>):<p className="empty-state">暂无结果</p>}</div>{results&&<div className="search-pagination"><span>共 {results.pagination.total} 条结果</span><PageNavigation pagination={results.pagination} onPageChange={setSearchPage} label="搜索结果分页"/></div>}</section></div>}
-  </div>;
+  </div></div>;
 }

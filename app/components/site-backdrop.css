@@ -1,0 +1,6 @@
+/* The background scrolls with the page, with no fixed image or per-frame style writes. */
+.site-page{position:relative;isolation:isolate;min-height:100vh}
+.site-backdrop{position:absolute;inset:0 0 auto;height:clamp(380px,65vh,640px);z-index:-1;overflow:hidden;pointer-events:none;contain:strict;-webkit-mask-image:linear-gradient(#000 0%,#000 16%,#000b 42%,transparent 100%);mask-image:linear-gradient(#000 0%,#000 16%,#000b 42%,transparent 100%);background:radial-gradient(ellipse at 72% 0%,#c4d7d94a,transparent 68%),radial-gradient(ellipse at 18% 15%,#e4d8c838,transparent 62%)}
+.site-backdrop img{display:block;width:100%;max-width:none;height:100%;object-fit:cover;object-position:center 35%;opacity:.42}
+:root[data-theme=dark] .site-backdrop{background:radial-gradient(ellipse at 65% 0%,#659eb914,transparent 72%)}
+:root[data-theme=dark] .site-backdrop img{opacity:.2}

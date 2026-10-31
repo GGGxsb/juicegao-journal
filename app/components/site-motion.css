@@ -2,14 +2,14 @@
    React adaptation and original source links: docs/axi-theme-reference.md. */
 .site-header-shell{height:104px;padding-top:12px;position:sticky;top:0;z-index:25;flex-shrink:0;pointer-events:none}
 .site-header-shell .site-header{height:80px;pointer-events:auto;border:1px solid transparent;border-radius:16px;transition:height .3s,padding .3s,margin-inline .3s,transform .3s,background .15s,border-color .15s,box-shadow .3s}
-.site-header-shell[data-scrolled=true] .site-header{height:64px;padding-inline:18px;margin-inline:8%;background:color-mix(in srgb,var(--bg) 80%,transparent);backdrop-filter:blur(16px);border-color:var(--line);box-shadow:0 10px 15px -3px #27272a14,0 4px 6px -4px #27272a14}
+.site-header-shell[data-scrolled=true] .site-header{height:64px;padding-inline:18px;margin-inline:8%;background:var(--bg);border-color:var(--line);box-shadow:0 10px 15px -3px #27272a14,0 4px 6px -4px #27272a14}
 .site-header-shell[data-show=false] .site-header{transform:translateY(-120%);pointer-events:none}
 .site-header-shell:focus-within .site-header,.site-header-shell:has(.main-nav.is-open) .site-header,.site-header-shell:has(details[open]) .site-header{transform:none;pointer-events:auto}
 .site-header-shell .site-name{min-width:0;overflow:hidden;text-overflow:ellipsis}
 .site-header-shell .main-nav{flex-shrink:0}
 .site-header-shell .header-actions{gap:18px}
 @media(min-width:561px){.site-header-shell .main-nav{margin-left:auto}.site-header-shell .header-actions{margin-left:0;flex-shrink:0}}
-.journal .blog-dropdown{border-radius:12px;backdrop-filter:blur(16px);background:color-mix(in srgb,var(--bg) 85%,transparent)}
+.journal .blog-dropdown{border-radius:12px;background:var(--bg)}
 .journal .blog-menu>summary svg{transition:transform .2s ease-in-out}
 .journal .blog-menu[open]>summary svg{transform:rotate(180deg)}
 @keyframes axi-surface-in{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
@@ -26,7 +26,7 @@ html[data-theme=dark] .axi-click-particle{box-shadow:0 0 8px #ffffff66}
 .post-item>a:hover .axi-redirect polyline,.post-item>a:focus-visible .axi-redirect polyline{transform:translateX(4px)}
 .article-cover-frame{position:relative;margin-bottom:30px;isolation:isolate}
 .article-cover-frame .article-cover{position:relative;display:block;z-index:1;margin:0;border-radius:16px}
-.article-cover-glow{position:absolute;inset:16px 0 -16px;width:100%;height:100%;object-fit:cover;border-radius:24px;filter:blur(20px);opacity:.6;pointer-events:none;transition:opacity .3s}
+.article-cover-glow{position:absolute;inset:16px 0 -16px;width:100%;height:100%;object-fit:cover;border-radius:24px;filter:blur(12px);opacity:.3;pointer-events:none}
 .journal .markdown :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:90px}
 @media(max-width:1023px){.site-header-shell[data-scrolled=true] .site-header{margin-inline:0}}
 @media(max-width:767px){.site-header-shell{height:90px;padding-top:8px}.site-header-shell .site-header{height:74px;gap:20px}.site-header-shell[data-scrolled=true] .site-header{padding-inline:12px}.site-header-shell .main-nav{gap:16px}}

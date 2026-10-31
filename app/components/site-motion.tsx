@@ -1,10 +1,15 @@
 'use client';
 import { useEffect } from 'react';
+import { usePathname } from 'next/navigation';
+import { observeHeaderScroll } from './header-scroll';
 
 // Adapted for React from Axi-Theme's BaseLayout, Header and global.css.
 // Source mapping and license: docs/axi-theme-reference.md.
 export default function SiteMotion() {
+  const pathname = usePathname();
   useEffect(() => {
+    const journal = document.querySelector<HTMLElement>('.journal');
+    if (!journal) return;
     const preference = matchMedia('(prefers-reduced-motion: reduce)');
     const animations = new Set<Animation>(), particles = new Set<HTMLElement>();
     const seen = new WeakSet<Element>();
@@ -31,11 +36,7 @@ export default function SiteMotion() {
         seen.add(element); observer.observe(element);
       });
     };
-    scan(document);
-    const mutations = new MutationObserver(records => records.forEach(record => record.addedNodes.forEach(node => {
-      if (node instanceof Element && !node.classList.contains('axi-click-particle')) scan(node);
-    })));
-    mutations.observe(document.body, { childList: true, subtree: true });
+    scan(journal);
 
     // Axi's 10 radial particles + 4 scattered particles, lasting 1.1 seconds.
     const colors = ['#ffb3ba','#a8d8ff','#ffe66d','#d4a5ff','#a8e6a8','#ffcc99','#b3deff','#f5c2c7','#c3e6c3','#ffe8b3'];
@@ -65,50 +66,18 @@ export default function SiteMotion() {
     };
     document.addEventListener('click', burst);
 
-    // The navigation narrows after 20px, hides below 600px, and returns on upward scroll.
-    let previousY = window.scrollY, frame = 0;
-    const measure = () => {
-      frame = 0;
-      const y = window.scrollY, header = document.querySelector<HTMLElement>('.site-header-shell');
-      if (header) {
-        header.dataset.scrolled = String(y > 20);
-        header.dataset.show = String(preference.matches || y < 600 || y < previousY || (y === previousY && header.dataset.show !== 'false'));
-      }
-      const profile = document.querySelector<HTMLElement>('.home-profile');
-      if (profile) {
-        // Use document coordinates so scrolling the profile never changes its range.
-        const bottom = profile.getBoundingClientRect().bottom + y;
-        const progress = preference.matches ? 0 : Math.max(0, Math.min(1, y / Math.max(240, bottom)));
-        profile.style.setProperty('--profile-opacity', String(1 - progress * .85));
-        profile.style.setProperty('--profile-scale', String(1 - progress * .1));
-        profile.style.setProperty('--profile-avatar-shift', `${progress * 22}px`);
-        profile.style.setProperty('--profile-details-shift', `${progress * 36}px`);
-      }
-      const backdrop = document.querySelector<HTMLElement>('.home-backdrop');
-      if (backdrop) {
-        const progress = preference.matches ? 0 : Math.max(0, Math.min(1, y / Math.max(320, backdrop.offsetHeight)));
-        backdrop.style.setProperty('--home-cover-opacity', String(1 - progress));
-        backdrop.style.setProperty('--home-cover-shift', `${progress * -64}px`);
-      }
-      const glow = document.querySelector<HTMLElement>('.article-cover-glow');
-      if (glow) glow.style.opacity = String(preference.matches ? .3 : y >= innerHeight / 3 ? .15 : y >= innerHeight * 2 / 9 ? .3 : y >= innerHeight / 9 ? .45 : .6);
-      previousY = y;
-    };
-    const schedule = () => { if (!frame) frame = requestAnimationFrame(measure); };
-    measure();
-    window.addEventListener('scroll', schedule, { passive: true });
-    window.addEventListener('resize', schedule, { passive: true });
+    const header = journal.querySelector<HTMLElement>('.site-header-shell');
+    const stopHeader = header ? observeHeaderScroll(header, preference) : undefined;
     const reduce = () => {
       if (preference.matches) animations.forEach(animation => animation.cancel());
-      measure();
     };
     preference.addEventListener('change', reduce);
     return () => {
-      observer.disconnect(); mutations.disconnect(); cancelAnimationFrame(frame);
-      document.removeEventListener('click', burst); window.removeEventListener('scroll', schedule); window.removeEventListener('resize', schedule);
+      observer.disconnect(); stopHeader?.();
+      document.removeEventListener('click', burst);
       animations.forEach(animation => animation.cancel()); particles.forEach(dot => dot.remove());
       preference.removeEventListener('change', reduce);
     };
-  }, []);
+  }, [pathname]);
   return null;
 }

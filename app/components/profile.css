@@ -1,10 +1,15 @@
-.home-backdrop{position:fixed;inset:0 0 auto;height:clamp(380px,65vh,640px);z-index:-1;overflow:hidden;pointer-events:none;opacity:var(--home-cover-opacity,1);mask-image:linear-gradient(#000 0%,#000 16%,#000b 42%,transparent 100%);background:radial-gradient(ellipse at 72% 0%,#c4d7d94a,transparent 68%),radial-gradient(ellipse at 18% 15%,#e4d8c838,transparent 62%)}
-.home-backdrop img{display:block;width:100%;max-width:none;height:calc(100% + 80px);object-fit:cover;object-position:center 35%;opacity:.42;transform:translate3d(0,var(--home-cover-shift,0px),0)}
-:root[data-theme=dark] .home-backdrop{background:radial-gradient(ellipse at 65% 0%,#659eb914,transparent 72%)}
-:root[data-theme=dark] .home-backdrop img{opacity:.27;filter:brightness(.7) saturate(.75)}
-.home-profile{width:66.666667%;margin-inline:0 auto;padding:32px 0 16px;margin-bottom:48px;opacity:var(--profile-opacity,1)}
-.home-profile .profile-avatar{transform:translate3d(0,var(--profile-avatar-shift,0px),0) scale(var(--profile-scale,1))}
-.home-profile .profile-details{transform:translate3d(0,var(--profile-details-shift,0px),0)}
+.home-profile{width:66.666667%;margin-inline:0 auto;padding:32px 0 16px;margin-bottom:48px}
+/* Let the browser drive transforms; unsupported browsers keep a static profile. */
+@keyframes profile-fade{to{opacity:.15}}
+@keyframes profile-avatar-shift{to{transform:translateY(22px) scale(.9)}}
+@keyframes profile-details-shift{to{transform:translateY(36px)}}
+@supports(animation-timeline:scroll()){
+  @media(prefers-reduced-motion:no-preference){
+    .home-profile{animation:profile-fade linear both;animation-timeline:scroll(root block);animation-range:0px 360px}
+    .home-profile .profile-avatar{animation:profile-avatar-shift linear both;animation-timeline:scroll(root block);animation-range:0px 360px}
+    .home-profile .profile-details{animation:profile-details-shift linear both;animation-timeline:scroll(root block);animation-range:0px 360px}
+  }
+}
 .profile .profile-avatar{box-shadow:0 8px 28px #2e363508;border-radius:12px}
 .profile .profile-avatar img{border-radius:8px}
 .profile .profile-details{gap:12px}
@@ -23,4 +28,4 @@
 .profile-social:is(:hover,:focus-visible)::after{opacity:1;visibility:visible;transform:translate(-50%,0)}
 @media(max-width:560px){.home-profile{width:100%;margin-inline:0;padding:22px 0 14px;margin-bottom:36px;gap:20px}.profile .profile-details{gap:10px}.profile-socials{gap:6px}.profile-social{width:34px;height:34px;border-radius:9px}.profile h1{font-size:25px}}
 @media(max-width:359px){.profile{gap:14px}.profile .profile-avatar{width:96px;height:96px}.profile-socials{gap:5px}.profile-social{width:32px;height:32px}.profile h1{font-size:23px}}
-@media(prefers-reduced-motion:reduce){.home-profile{opacity:1!important}.home-profile .profile-avatar,.home-profile .profile-details,.home-backdrop img{transform:none!important}.home-backdrop{opacity:1!important}.profile-social,.profile-social::after{transition:none}.profile-social:is(:hover,:focus-visible){transform:none}}
+@media(prefers-reduced-motion:reduce){.profile-social,.profile-social::after{transition:none}.profile-social:is(:hover,:focus-visible){transform:none}}

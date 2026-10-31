@@ -63,7 +63,12 @@ try {
   assert.ok(!render({ ...removed, bilibili: 'javascript:alert(1)', xiaohongshu: '' }).includes('profile-socials'));
   const { default: Editor } = await import('../app/admin/home-background-editor.tsx');
   const editor = renderToStaticMarkup(createElement(Editor, { value: '/media/landscape.png', onChange() {}, onBusyChange() {} }));
-  assert.ok(editor.includes('首页顶部背景预览') && editor.includes('更换背景图') && editor.includes('移除背景图') && editor.includes('type="file"'));
+  assert.ok(editor.includes('前台页面顶部背景预览') && editor.includes('更换背景图') && editor.includes('移除背景图') && editor.includes('type="file"'));
+  const { default: Backdrop } = await import('../app/components/site-backdrop.tsx');
+  const backdrop = value => renderToStaticMarkup(createElement(Backdrop, { src: value }));
+  assert.ok(backdrop(configured.homeBackground).includes('src="/media/landscape.png"'));
+  assert.ok(backdrop('').includes('aria-hidden="true"') && !backdrop('').includes('<img'));
+  assert.ok(!backdrop('javascript:alert(1)').includes('<img'));
   console.log('PASS public profiles use accessible icons, empty/unsafe platforms stay hidden, and admin exposes background upload/replace/remove.');
 } finally {
   closeDatabase(); styles.deregister(); unregister();
