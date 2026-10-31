@@ -9,6 +9,7 @@ import { ApiError } from "./errors";
 import { DEFAULT_POST_CATEGORY, POST_CATEGORIES, type PostCategory } from "./post-categories";
 import { cityIdsSchema } from "./draft-state";
 import {resumeImageUrl} from './resume-image';
+import { DEFAULT_SOCIAL_LINKS, socialProfileUrl, type SocialPlatform } from './social-links';
 export { getAdminSession, requireAdmin, ApiError };
 import type { MapPost, Post, PostCollection, PostInput, PostStatus, SettingsInput, SiteSettings } from "./types";
 
@@ -17,7 +18,8 @@ export const DEFAULT_SETTINGS: SiteSettings = {
   bio: "",
   description: "",
   avatar: "",
-  github: "",
+  homeBackground: "",
+  ...DEFAULT_SOCIAL_LINKS,
   email: "",
   location: "",
   education: "",
@@ -227,11 +229,18 @@ const resumeEntriesSchema = z.array(resumeEntrySchema).max(20, "每组最多添�
   });
 });
 
+const socialLinkSchema = (platform: SocialPlatform, label: string) => z.string().trim().max(2048)
+  .refine(value => !value || Boolean(socialProfileUrl(value, platform)), `请输入有效的${label} HTTPS 主页链接。`).optional();
+
 const settingsSchema = z.object({
   name: z.string().trim().min(1, "请输入昵称。").max(80),
   bio: z.string().trim().max(300),
   description: z.string().trim().max(3000),
   avatar: imageUrlSchema,
+  homeBackground: z.string().trim().max(2048).refine(value => !value || Boolean(resumeImageUrl(value)), "首页背景必须是本站图片路径或不含账号密码的 HTTPS 图片地址。").optional(),
+  xiaohongshu: socialLinkSchema('xiaohongshu', '小红书'),
+  bilibili: socialLinkSchema('bilibili', 'B站'),
+  douyin: socialLinkSchema('douyin', '抖音'),
   github: z.string().trim().max(2048).refine((value) => {
     if (!value) return true;
     try { const url = new URL(value); return url.protocol === "https:" && url.hostname === "github.com"; } catch { return false; }

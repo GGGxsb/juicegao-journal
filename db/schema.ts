@@ -4,6 +4,7 @@ import { DEFAULT_POST_CATEGORY, POST_CATEGORIES } from "../app/lib/post-categori
 import type { ResumeEntry } from "../app/lib/types";
 import type { EditorValue } from "../app/lib/draft-state";
 import type { ContributionCalendar } from "../app/lib/github-contribution-types";
+import { DEFAULT_SOCIAL_LINKS } from "../app/lib/social-links";
 
 export const githubContributionCache = sqliteTable("github_contribution_cache", {
   username: text("username").primaryKey(),
@@ -43,7 +44,11 @@ export const siteSettings = sqliteTable("site_settings", {
   bio: text("bio").notNull().default("记录、探索，保持好奇。"),
   description: text("description").notNull().default("一个记录技术、生活与灵感的个人空间。"),
   avatar: text("avatar").notNull().default(""),
-  github: text("github").notNull().default(""),
+  homeBackground: text("home_background").notNull().default(""),
+  github: text("github").notNull().default(DEFAULT_SOCIAL_LINKS.github),
+  xiaohongshu: text("xiaohongshu").notNull().default(DEFAULT_SOCIAL_LINKS.xiaohongshu),
+  bilibili: text("bilibili").notNull().default(DEFAULT_SOCIAL_LINKS.bilibili),
+  douyin: text("douyin").notNull().default(""),
   email: text("email").notNull().default(""),
   location: text("location").notNull().default(""),
   education: text("education").notNull().default(""),

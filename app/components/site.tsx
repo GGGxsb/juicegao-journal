@@ -1,11 +1,13 @@
 'use client';
 import {useEffect,useRef,useState,type ReactNode} from 'react';
-import {Search,ChevronDown,ArrowLeft,ArrowRight,MapPin,Mail,Menu,X,UserRound,Check,Copy,Code2,Eye} from 'lucide-react';
+import {Search,ChevronDown,ArrowLeft,ArrowRight,Menu,X,Check,Copy,Eye} from 'lucide-react';
 import type {Post,SiteSettings,Pagination,PostStatistics,PostCollection,HomeOverview,ArticleNavigation as ArticleNavigationData} from '../lib/types';
 import {Markdown,getMarkdownHeadings} from './markdown';
 import {PageNavigation} from './pagination';
 import ArticleFeedback from './article-feedback';
 import HomeContent from './home-content';
+import Profile from './profile';
+import { resumeImageUrl } from '../lib/resume-image';
 import ResumeSections from './resume-sections';
 import Sponsor from './sponsor';
 import PostList from './post-list';
@@ -47,12 +49,14 @@ export default function Journal({settings,posts,view,article,pagination,stats,se
   const name=settings.name||'JuiceGao',bio=settings.bio==='记录、探索，保持好奇。'?'':settings.bio,description=settings.description==='一个记录技术、生活与灵感的个人空间。'?'':settings.description;
   function pageHref(page:number){const params=new URLSearchParams();if(selectedCategory!=='全部'&&selectedCategory)params.set('category',selectedCategory);if(selectedTag)params.set('tag',selectedTag);if(searchQuery)params.set('q',searchQuery);if(pagination&&pagination.pageSize!==15)params.set('pageSize',String(pagination.pageSize));if(page>1)params.set('page',String(page));return '/articles'+(params.size?`?${params}`:'')}
   function categoryHref(category:string){const params=new URLSearchParams();if(category!=='全部')params.set('category',category);if(selectedTag)params.set('tag',selectedTag);if(searchQuery)params.set('q',searchQuery);return '/articles'+(params.size?`?${params}`:'')}
-  const profile=<section className="profile"><div className="profile-avatar">{settings.avatar?<img src={settings.avatar} alt={name}/>:<UserRound size={58} strokeWidth={1}/>}</div><div className="profile-details"><h1>{name}</h1><div className="profile-labels">{settings.location&&<span><MapPin size={15}/>{settings.location}</span>}{settings.github&&<a href={settings.github} target="_blank" rel="noreferrer"><Code2 size={15}/>Github</a>}{settings.email&&<a href={`mailto:${settings.email}`}><Mail size={15}/>Email</a>}</div></div></section>;
+  const profile=<Profile settings={settings} name={name} home={view==='home'}/>;
+  const homeBackground=resumeImageUrl(settings.homeBackground);
   const postList=<PostList posts={posts}/>;
   const count=pagination&&<p className="listing-count">{searchQuery&&<>“{searchQuery}” · </>}共 {pagination.total} 篇{pagination.totalPages>1&&<> · 第 {pagination.page} / {pagination.totalPages} 页</>}</p>;
   const pageNavigation=pagination&&<PageNavigation pagination={pagination} hrefForPage={pageHref} label="文章分页"/>;
   return <div className="journal">
     <PageViewTracker onRecorded={setTraffic}/>
+    {view==='home'&&<div className="home-backdrop" aria-hidden="true">{homeBackground&&<img src={homeBackground} alt="" fetchPriority="high"/>}</div>}
     <div className="site-header-shell"><header className="site-header"><a href="/" className="site-name">{name}'s Blog</a><nav className={mobileOpen?'main-nav is-open':'main-nav'} aria-label="主导航"><details className="blog-menu"><summary className={view==='articles'||view==='article'||view==='tags'?'active':''}>博客 <ChevronDown size={14}/></summary><div className="blog-dropdown">{POST_CATEGORIES.map(category=><a key={category} href={`/articles?${new URLSearchParams({category})}`} aria-current={view==="articles"&&selectedCategory===category?"page":undefined}>{category}</a>)}</div></details><a className={view==='about'?'active':''} href="/about">关于</a><a className={view==='map'?'active':''} href="/map" aria-current={view==='map'?'page':undefined}>地图</a></nav><div className="header-actions"><button className="search-trigger" onClick={()=>setSearchOpen(true)} aria-label="搜索"><Search size={16}/><span>搜索</span></button><ThemeToggle/><button className="icon-button mobile-toggle" onClick={()=>setMobileOpen(!mobileOpen)} aria-expanded={mobileOpen} aria-label="菜单">{mobileOpen?<X size={20}/>:<Menu size={20}/>}</button></div></header></div>
     <main id="main-content">
       {view==='home'&&<>{profile}<HomeContent settings={settings} bio={bio} description={description} stats={stats} home={home} traffic={traffic??home?.traffic}/></>}

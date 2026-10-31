@@ -22,11 +22,12 @@ try{
   legacy.prepare('INSERT INTO posts(id,slug,title,content,created_at,updated_at) VALUES (?,?,?,?,?,?)').run('old','old','原文章','原正文','2026-01-01','2026-01-01');
   const before=legacy.prepare('SELECT * FROM site_settings').get();
   const originalPost=legacy.prepare('SELECT * FROM posts').get();
-  assert.equal(migrateDatabase().applied,1);
+  const pending = readdirSync('drizzle').filter(name=>name.endsWith('.sql')&&name>='0014').length;
+  assert.equal(migrateDatabase().applied,pending);
   closeDatabase();
   const connection=getDatabaseAdapter().connection;
   const after=connection.prepare('SELECT * FROM site_settings').get();
-  for(const [key,value] of Object.entries(before))assert.equal(after[key],value);
+  for(const [key,value] of Object.entries(before))assert.equal(after[key],key==='github'&&!value?'https://github.com/GGGxsb':value);
   assert.equal(after.sponsor_wechat,'');assert.equal(after.sponsor_alipay,'');
   assert.deepEqual(connection.prepare('SELECT * FROM posts').get(),originalPost);
   assert.equal(migrateDatabase().applied,0);

@@ -8,7 +8,7 @@ export default function SiteMotion() {
     const preference = matchMedia('(prefers-reduced-motion: reduce)');
     const animations = new Set<Animation>(), particles = new Set<HTMLElement>();
     const seen = new WeakSet<Element>();
-    const selector = '.journal .profile,.journal .listing-page>h1,.journal .home-section,.journal .post-item,.journal .tag-directory>a,.journal .article-main>h1,.journal .article-meta,.journal .reader-sidebar';
+    const selector = '.journal .profile:not(.home-profile),.journal .listing-page>h1,.journal .home-section,.journal .post-item,.journal .tag-directory>a,.journal .article-main>h1,.journal .article-meta,.journal .reader-sidebar';
     const observer = new IntersectionObserver(entries => {
       let index = 0;
       entries.forEach(entry => {
@@ -73,6 +73,22 @@ export default function SiteMotion() {
       if (header) {
         header.dataset.scrolled = String(y > 20);
         header.dataset.show = String(preference.matches || y < 600 || y < previousY || (y === previousY && header.dataset.show !== 'false'));
+      }
+      const profile = document.querySelector<HTMLElement>('.home-profile');
+      if (profile) {
+        // Use document coordinates so scrolling the profile never changes its range.
+        const bottom = profile.getBoundingClientRect().bottom + y;
+        const progress = preference.matches ? 0 : Math.max(0, Math.min(1, y / Math.max(240, bottom)));
+        profile.style.setProperty('--profile-opacity', String(1 - progress * .85));
+        profile.style.setProperty('--profile-scale', String(1 - progress * .1));
+        profile.style.setProperty('--profile-avatar-shift', `${progress * 22}px`);
+        profile.style.setProperty('--profile-details-shift', `${progress * 36}px`);
+      }
+      const backdrop = document.querySelector<HTMLElement>('.home-backdrop');
+      if (backdrop) {
+        const progress = preference.matches ? 0 : Math.max(0, Math.min(1, y / Math.max(320, backdrop.offsetHeight)));
+        backdrop.style.setProperty('--home-cover-opacity', String(1 - progress));
+        backdrop.style.setProperty('--home-cover-shift', `${progress * -64}px`);
       }
       const glow = document.querySelector<HTMLElement>('.article-cover-glow');
       if (glow) glow.style.opacity = String(preference.matches ? .3 : y >= innerHeight / 3 ? .15 : y >= innerHeight * 2 / 9 ? .3 : y >= innerHeight / 9 ? .45 : .6);

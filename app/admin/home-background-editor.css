@@ -1,0 +1,6 @@
+.admin-home-background{margin-bottom:28px;min-width:0}
+.admin-home-background h3{font-size:12px;font-weight:600;color:var(--a-ink);margin:0 0 14px}
+.admin-home-background-preview{aspect-ratio:16/7;overflow:hidden;border:1px solid var(--a-line);border-radius:8px;margin-bottom:12px;background:var(--a-surface-muted,#f5f3ed)}
+.admin-home-background-preview img{display:block;width:100%;height:100%;object-fit:cover}
+.admin-home-background-actions{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:16px}
+.admin-home-background-error{font-size:11px;color:var(--a-danger-hover,#a24141);line-height:1.8}

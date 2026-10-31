@@ -55,7 +55,11 @@ export interface SiteSettings {
   bio: string;
   description: string;
   avatar: string;
+  homeBackground: string;
   github: string;
+  xiaohongshu: string;
+  bilibili: string;
+  douyin: string;
   email: string;
   location: string;
   education: string;
@@ -67,8 +71,8 @@ export interface SiteSettings {
 }
 
 /** Omitted optional settings preserve saved values; explicit empty values clear them. */
-export type SettingsInput = Omit<SiteSettings, "educationEntries" | "experienceEntries" | "sponsorWechat" | "sponsorAlipay"> &
-  Partial<Pick<SiteSettings, "educationEntries" | "experienceEntries" | "sponsorWechat" | "sponsorAlipay">>;
+type OptionalSettings = "educationEntries" | "experienceEntries" | "sponsorWechat" | "sponsorAlipay" | "homeBackground" | "xiaohongshu" | "bilibili" | "douyin";
+export type SettingsInput = Omit<SiteSettings, OptionalSettings> & Partial<Pick<SiteSettings, OptionalSettings>>;
 
 export interface HomeOverview {
   today: string;
