@@ -12,7 +12,9 @@
     "start": "next start --hostname 0.0.0.0 --port 3000",
     "db:migrate": "node scripts/migrate.mjs",
     "verify": "node scripts/verify-journal.mjs http://127.0.0.1:3000",
-    "verify:markdown": "node scripts/verify-markdown.mjs"
+    "verify:markdown": "node scripts/verify-markdown.mjs",
+    "pages:sync": "tsx scripts/pages-sync.ts",
+    "pages:build": "node scripts/pages-build.mjs"
   },
   "dependencies": {
     "bcryptjs": "3.0.3",

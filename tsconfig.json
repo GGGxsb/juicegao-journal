@@ -43,6 +43,9 @@
     "node_modules",
     ".next/standalone",
     "data",
-    "outputs"
+    "outputs",
+    ".pages-build",
+    ".pages-content",
+    "static-site"
   ]
 }

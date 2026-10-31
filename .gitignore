@@ -5,6 +5,8 @@ data/
 !/public/data/**
 uploads/
 outputs/
+.pages-build/
+.pages-content/
 backups/
 certs/
 .env

@@ -17,6 +17,8 @@ uploads
 backups
 **/certs
 outputs
+.pages-build
+.pages-content
 *.log
 *.sqlite
 *.sqlite-*

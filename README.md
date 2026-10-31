@@ -240,6 +240,12 @@ docker run --rm --user "$(id -u):$(id -g)" -v "$PWD:/workspace" -w /workspace no
 
 生成后再向 `.env` 添加 `SITE_DOMAIN=你的域名`，然后使用 HTTPS 配置启动。
 
+## GitHub Pages 静态镜像
+
+支持使用 GitHub Actions 定时同步腾讯云原站的公开文章、个人资料、图片和已审核评论，再部署为 GitHub Pages 静态网站。后台仍在腾讯云使用，Pages 的搜索、分类、分页与地图可独立浏览，评论和点赞入口返回原站。
+
+首次启用、同步频率和域名设置见 [GitHub Pages 部署说明](docs/github-pages.md)。
+
 ## 组成
 
 - Next.js 服务端渲染，文章支持 Markdown。
