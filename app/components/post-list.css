@@ -19,11 +19,20 @@
 .post-list .post-item .post-card-image .card-cover{inset:0;width:100%;height:100%;object-fit:contain;object-position:center;border-radius:0;opacity:.9;transform:scale(1);-webkit-mask-image:linear-gradient(#000 65%,transparent);mask-image:linear-gradient(#000 65%,transparent);transition:transform .45s ease,opacity .3s}
 .post-list .post-item:is(:hover,:focus-within) .post-card-image .card-cover{opacity:1;transform:scale(1.025)}
 .post-item.has-cover-color:is(:hover,:focus-within) .post-card-image{background:var(--cover-tint)}
-.post-card-portrait .post-card-link{display:grid;grid-template-columns:minmax(0,1fr) 42%;grid-template-areas:'copy image';min-height:292px}
-.post-card-portrait .post-summary{grid-area:copy;align-self:center;padding-right:10px}
-.post-list .post-card-portrait h2{-webkit-line-clamp:3;font-size:19px}
-.post-card-portrait .post-card-image{grid-area:image;aspect-ratio:auto;height:100%;min-height:292px}
-.post-list .post-card-portrait .post-card-image .card-cover{-webkit-mask-image:linear-gradient(to right,transparent,#000 22%);mask-image:linear-gradient(to right,transparent,#000 22%)}
+/* Portrait covers fill the entire card; copy and independent tag links sit above a dark gradient. */
+.post-list .post-card-portrait{--cover-ink:#fff;--cover-tint:#172129;--cover-border:color-mix(in srgb,var(--cover-color,var(--accent)) 60%,#627586);min-height:420px;background:var(--cover-tint);color:#fff}
+.post-list .post-card-portrait:is(:hover,:focus-within){background:var(--cover-tint)}
+.post-card-portrait .post-card-link{justify-content:flex-end;min-height:360px;padding-top:160px}
+.post-card-portrait .post-card-image{position:absolute;inset:0;z-index:0;aspect-ratio:auto;height:100%;background:#172129;pointer-events:none}
+.post-card-portrait .post-card-image::after{content:"";position:absolute;inset:0;z-index:1;background:linear-gradient(180deg,#080c1210 0%,#080c1226 28%,#080c1299 58%,#080c12eb 86%,#080c12f5 100%)}
+.post-list .post-card-portrait .post-card-image .card-cover{object-fit:cover;object-position:center 35%;opacity:1;-webkit-mask-image:none;mask-image:none}
+.post-card-portrait .post-summary{z-index:2;padding:24px 24px 16px;background:linear-gradient(180deg,#080c1200,#080c128c 36px,#080c12c7)}
+.post-list .post-card-portrait h2{-webkit-line-clamp:3;font-size:22px;color:#fff}
+.post-list .post-card-portrait p{color:#ffffffe6}
+.post-list .post-card-portrait .post-meta,.post-list .post-card-portrait .axi-redirect{color:#ffffffcc}
+.post-list .post-card-portrait .post-item-tags{z-index:2;padding:0 24px 22px;color:#ffffffe6}
+.post-list .post-card-portrait .post-item-tags a{padding:2px 8px;border:1px solid #ffffff3b;border-radius:999px;background:#ffffff14;color:inherit}
+.post-list .post-card-portrait .post-item-tags a:hover{background:#ffffff2e;color:#fff}
 .post-card-text .post-card-link{justify-content:center;min-height:190px}
 .post-item-tags{position:relative;z-index:1;display:flex;flex-wrap:wrap;gap:5px 10px;margin:0;padding:0 20px 18px;font-size:11px;line-height:1.7;color:var(--muted)}
 .post-item-tags a{overflow-wrap:anywhere;max-width:100%}
@@ -33,8 +42,11 @@
 @media(max-width:560px){
   .post-summary{padding:16px}
   .post-item-tags{padding:0 16px 16px}
-  .post-card-portrait .post-card-link,.post-card-portrait .post-card-image{min-height:260px}
-  .post-list .post-card-portrait h2{font-size:18px}
+  .post-list .post-card-portrait{min-height:400px}
+  .post-card-portrait .post-card-link{min-height:340px}
+  .post-card-portrait .post-summary{padding:20px 20px 16px}
+  .post-list .post-card-portrait .post-item-tags{padding:0 20px 20px}
+  .post-list .post-card-portrait h2{font-size:21px}
 }
-@media(max-width:359px){.post-card-portrait .post-card-link{grid-template-columns:minmax(0,1fr) 38%}.post-list .post-card-portrait h2{font-size:17px}.post-list .post-meta{gap:5px 9px}}
+@media(max-width:359px){.post-list .post-card-portrait h2{font-size:20px}.post-list .post-meta{gap:5px 9px}}
 @media(prefers-reduced-motion:reduce){.post-list .post-item,.post-card-image,.post-list .post-item .post-card-image .card-cover{transition:none}.post-list .post-item:is(:hover,:focus-within) .post-card-image .card-cover{transform:none}}
