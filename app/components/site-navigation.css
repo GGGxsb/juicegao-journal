@@ -8,4 +8,6 @@
 .article-main{min-width:0}
 .article-view-count{display:inline-flex;align-items:center;gap:5px}
 [data-article-body]{scroll-margin-top:24px}
-@media(max-width:560px){.listing-tools{font-size:12px}}
+.journal .site-footer{flex-wrap:wrap;row-gap:10px;text-align:center}
+.site-footer .site-icp{white-space:nowrap}
+@media(max-width:560px){.listing-tools{font-size:12px}.site-footer .site-icp{flex-basis:100%}}
